@@ -1,6 +1,7 @@
 %define major 0
 %define libname %mklibname %{name} %{major}
 %define devname %mklibname %{name} -d
+%define packager itchka_at_compuserve.com
 
 Name:		efivar
 Version:	0.15
@@ -10,19 +11,27 @@ License:	LGPLv2.1
 Group:		System/Kernel and hardware
 Url:		https://github.com/vathpela/efivar
 Source0:	https://github.com/vathpela/%{name}/releases/download/%{version}/%{name}-%{version}.tar.bz2
-
+Packager:       %{packager}
 
 Requires:	%{libname} = %{version}-%{release}
 BuildRequires:  popt-devel
 
 %description
-efivar is a command line interface to the EFI variables in /sys/firmware/efi
+efivar is a command line interface to the EFI variables in '/sys/firmware/efi'
+
+%files
+%doc COPYING README
+%{_bindir}/efivar
+%{_mandir}/man1/*
+
 
 #------------------------------------------------------------------
 
 %package -n     %{libname}
 Summary:        Shared library for %{name}
 Group:		System/Libraries
+Packager:	%{packager}
+Requires:       %{libname} = %{version}-%{release}
 
 %description -n %{libname}
 Shared library support for the efitools, efivar and efibootmgr
@@ -33,10 +42,11 @@ Shared library support for the efitools, efivar and efibootmgr
 #------------------------------------------------------------------
 
 %package -n     %{devname}
-Summary:        foo development files
+Summary:        libefivar development files
 Group:		Development/Other
 Requires:       %{libname} = %{EVRD}
 Provides:       %{name}-devel = %{EVRD}
+Packager:       %{packager}
 
 %description -n %{devname}
 Development files for libefivar
@@ -44,6 +54,9 @@ Development files for libefivar
 %files -n %{devname}
 %{_includedir}/*.h
 %{_libdir}/*.so
+%{_libdir}/pkgconfig/*.pc
+%doc
+%{_mandir}/man3/*
 
 #------------------------------------------------------------------
 
@@ -51,22 +64,7 @@ Development files for libefivar
 %setup -q -n %{name}-%{version}
 
 %build
-%make libdir=%{_libdir} bindir=%{_bindir} %{optflags}
+%make libdir=%{_libdir} bindir=%{_bindir} CFLAGS='%{optflags}'
 
 %install
 %makeinstall_std
-
-%files
-%doc COPYING README
-%{_bindir}/efivar
-%{_mandir}/man1/*
-
-%files -n %{develname}
-%{_mandir}/man3/*
-%{_includedir}/*
-%{_libdir}/*.so
-%{_libdir}/pkgconfig/*.pc
-
-%files -n %{libname}
-%{_libdir}/*.so.%{major}*
-
