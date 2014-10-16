@@ -1,7 +1,6 @@
 %define major 0
 %define libname %mklibname %{name} %{major}
 %define devname %mklibname %{name} -d
-%define packager itchka_at_compuserve.com
 
 Name:		efivar
 Version:	0.15
@@ -11,13 +10,13 @@ License:	LGPLv2.1
 Group:		System/Kernel and hardware
 Url:		https://github.com/vathpela/efivar
 Source0:	https://github.com/vathpela/%{name}/releases/download/%{version}/%{name}-%{version}.tar.bz2
-Packager:       %{packager}
-
+Patch1:		001-fix-multi-arch-build.patch
+ExclusiveArch:	%{ix86} ia64 x86_64
 Requires:	%{libname} = %{version}-%{release}
 BuildRequires:  popt-devel
 
 %description
-efivar is a command line interface to the EFI variables in '/sys/firmware/efi'
+efivar is a command line interface to the EFI variables in '/sys/firmware/efi'.
 
 %files
 %doc COPYING README
@@ -30,11 +29,9 @@ efivar is a command line interface to the EFI variables in '/sys/firmware/efi'
 %package -n     %{libname}
 Summary:        Shared library for %{name}
 Group:		System/Libraries
-Packager:	%{packager}
-Requires:       %{libname} = %{version}-%{release}
 
 %description -n %{libname}
-Shared library support for the efitools, efivar and efibootmgr
+Shared library support for the efitools, efivar and efibootmgr.
 
 %files -n %{libname}
 %{_libdir}/lib%{name}.so.%{major}*
@@ -46,10 +43,9 @@ Summary:        libefivar development files
 Group:		Development/Other
 Requires:       %{libname} = %{EVRD}
 Provides:       %{name}-devel = %{EVRD}
-Packager:       %{packager}
 
 %description -n %{devname}
-Development files for libefivar
+Development files for libefivar.
 
 %files -n %{devname}
 %{_includedir}/*.h
@@ -61,10 +57,14 @@ Development files for libefivar
 #------------------------------------------------------------------
 
 %prep
-%setup -q -n %{name}-%{version}
+%setup -q
+%apply_patches
 
 %build
-%make libdir=%{_libdir} bindir=%{_bindir} CFLAGS='%{optflags}'
+%setup_compile_flags
+#sed -i -e s'#libdir.*#libdir=%{_libdir}#' Make.defaults
+#sed -i -e s'#CFLAGS.*#libdir=%{optflags}#' Make.defaults
+%make libdir=%{_libdir} bindir=%{_bindir}
 
 %install
 %makeinstall_std
