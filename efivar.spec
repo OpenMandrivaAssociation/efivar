@@ -10,11 +10,12 @@ License:	LGPLv2.1
 Group:		System/Kernel and hardware
 Url:		https://github.com/vathpela/efivar
 Source0:	https://github.com/vathpela/%{name}/releases/download/%{version}/%{name}-%{version}.tar.bz2
-
+Patch1:		001-fix-multi-arch-build.patch
+ExclusiveArch:	%{ix86} ia64 x86_64
 BuildRequires:	pkgconfig(popt)
 
 %description
-efivar is a command line interface to the EFI variables in '/sys/firmware/efi'
+efivar is a command line interface to the EFI variables in '/sys/firmware/efi'.
 
 %files
 %doc COPYING README
@@ -27,10 +28,9 @@ efivar is a command line interface to the EFI variables in '/sys/firmware/efi'
 %package -n	%{libname}
 Summary:	Shared library for %{name}
 Group:		System/Libraries
-Requires:	%{libname} = %{version}-%{release}
 
 %description -n	%{libname}
-Shared library support for the efitools, efivar and efibootmgr
+Shared library support for the efitools, efivar and efibootmgr.
 
 %files -n	%{libname}
 %{_libdir}/lib%{name}.so.%{major}*
@@ -44,7 +44,7 @@ Requires:	%{libname} = %{EVRD}
 Provides:	%{name}-devel = %{EVRD}
 
 %description -n	%{devname}
-Development files for libefivar
+Development files for libefivar.
 
 %files -n	%{devname}
 %{_includedir}/efivar.h
@@ -58,9 +58,13 @@ Development files for libefivar
 
 %prep
 %setup -q
+%apply_patches
 
 %build
-%make libdir=%{_libdir} bindir=%{_bindir} CFLAGS='%{optflags}'
+%setup_compile_flags
+#sed -i -e s'#libdir.*#libdir=%{_libdir}#' Make.defaults
+#sed -i -e s'#CFLAGS.*#libdir=%{optflags}#' Make.defaults
+%make libdir=%{_libdir} bindir=%{_bindir}
 
 %install
 %makeinstall_std
