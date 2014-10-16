@@ -2,7 +2,7 @@
 %define libname %mklibname %{name} %{major}
 %define devname %mklibname %{name} -d
 
-Name:		foo	
+Name:		efivar
 Version:	0.15
 Release:	1
 Summary:	EFI variables management tool
