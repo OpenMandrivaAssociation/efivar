@@ -9,7 +9,7 @@ Summary:	EFI variables management tool
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
 Url:		https://github.com/vathpela/efivar
-Source0:	https://github.com/vathpela/%{name}/releases/download/%{version}/%{name}-%{version}.tar.bz2
+#Source0:	https://github.com/vathpela/%{name}/releases/download/%{version}/%{name}-%{version}.tar.bz2
 Patch1:		001-fix-multi-arch-build.patch
 ExclusiveArch:	%{ix86} ia64 x86_64
 BuildRequires:	pkgconfig(popt)
