@@ -65,7 +65,7 @@ Development files for libefivar.
 sed -i -e s'#libdir.*#libdir=%{_libdir}#' Make.defaults
 #sed -i -e s'#CFLAGS.*#CFLAGS=%{optflags}#' Make.defaults
 
-%make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" includedir="%{_includedir}" V=1 -j1
+%make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" V=1 -j1
 
 %install
 %makeinstall_std
