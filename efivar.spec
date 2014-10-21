@@ -63,7 +63,7 @@ Development files for libefivar.
 %build
 %setup_compile_flags
 sed -i -e s'#libdir.*#libdir=%{_libdir}#' Make.defaults
-sed -i -e s'#CFLAGS.*#libdir=%{optflags}#' Make.defaults
+sed -i -e s'#CFLAGS.*#CFLAGS=%{optflags}#' Make.defaults
 
 %make libdir=%{_libdir} bindir=%{_bindir}
 
