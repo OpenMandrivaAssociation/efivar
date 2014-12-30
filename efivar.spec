@@ -61,6 +61,7 @@ Development files for libefivar.
 
 %build
 %setup_compile_flags
+export CC=gcc
 sed -i -e s'#libdir.*#libdir=%{_libdir}#' Make.defaults
 %make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" V=1 -j1
 
