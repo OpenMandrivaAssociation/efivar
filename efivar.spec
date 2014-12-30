@@ -10,8 +10,7 @@ License:	LGPLv2.1
 Group:		System/Kernel and hardware
 Url:		https://github.com/vathpela/efivar
 Source0:	https://github.com/vathpela/%{name}/releases/download/%{version}/%{name}-%{version}.tar.bz2
-#Patch1:		001-fix-multi-arch-build.patch
-ExclusiveArch:	%{ix86} ia64 x86_64
+ExclusiveArch:	%{ix86} x86_64
 BuildRequires:	pkgconfig(popt)
 
 %description
@@ -62,9 +61,8 @@ Development files for libefivar.
 
 %build
 %setup_compile_flags
-#sed -i -e s'#libdir.*#libdir=%{_libdir}#' Make.defaults
-#sed -i -e s'#CFLAGS.*#libdir=%{optflags}#' Make.defaults
-%make libdir=%{_libdir} bindir=%{_bindir}
+
+%make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" V=1 -j1
 
 %install
-%makeinstall_std
+%makeinstall_std libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}"
