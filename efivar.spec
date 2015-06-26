@@ -6,7 +6,7 @@
 
 Name:		efivar
 Version:	0.15
-Release:	3
+Release:	4
 Summary:	EFI variables management tool
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
@@ -18,6 +18,7 @@ ExclusiveArch:	%{ix86} x86_64
 BuildRequires:	pkgconfig(popt)
 %if %{with uclibc}
 BuildRequires:	uClibc-devel
+BuildRequires:	uclibc-popt-devel
 %endif
 
 %description
@@ -62,6 +63,20 @@ Shared library support for the efitools, efivar and efibootmgr.
 
 %files -n	uclibc-%{libname}
 %{uclibc_root}%{_libdir}/lib%{name}.so.%{major}*
+
+%package -n	uclibc-%{devname}
+Summary:	libefivar development files
+Group:		Development/Other
+Requires:	%{devname} = %{EVRD}
+Requires:	uclibc-%{libname} = %{EVRD}
+Provides:	uclibc-%{name}-devel = %{EVRD}
+Conflicts:	%{devname} < 0.15-4
+
+%description -n	uclibc-%{devname}
+Development files for libefivar.
+
+%files -n uclibc-%{devname}
+%{uclibc_root}%{_libdir}/libefivar.so
 %endif
 
 #------------------------------------------------------------------
@@ -70,9 +85,6 @@ Shared library support for the efitools, efivar and efibootmgr.
 Summary:	libefivar development files
 Group:		Development/Other
 Requires:	%{libname} = %{EVRD}
-%if %{with uclibc}
-Requires:	uclibc-%{libname} = %{EVRD}
-%endif
 Provides:	%{name}-devel = %{EVRD}
 
 %description -n	%{devname}
@@ -82,9 +94,6 @@ Development files for libefivar.
 %{_includedir}/efivar.h
 %{_includedir}/efivar-guids.h
 %{_libdir}/libefivar.so
-%if %{with uclibc}
-%{uclibc_root}%{_libdir}/libefivar.so
-%endif
 %{_libdir}/pkgconfig/efivar.pc
 %doc
 %{_mandir}/man3/*
