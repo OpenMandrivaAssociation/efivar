@@ -2,11 +2,11 @@
 %define	libname	%mklibname %{name} %{major}
 %define	devname	%mklibname %{name} -d
 
-%bcond_without	uclibc
+%bcond_with	uclibc
 
 Name:		efivar
 Version:	0.15
-Release:	5
+Release:	6
 Summary:	EFI variables management tool
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
