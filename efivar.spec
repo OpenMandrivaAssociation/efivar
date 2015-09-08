@@ -109,7 +109,6 @@ Development files for libefivar.
 %{_includedir}/efivar/efivar.h
 %{_libdir}/libefivar.so
 %{_libdir}/pkgconfig/efivar.pc
-%doc
 %{_mandir}/man3/*
 
 
