@@ -28,7 +28,7 @@ BuildRequires:	uclibc-popt-devel
 efivar is a command line interface to the EFI variables in '/sys/firmware/efi'.
 
 %files
-%doc COPYING README
+%doc COPYING README.md TODO
 %{_bindir}/efivar
 %{_mandir}/man1/*
 
