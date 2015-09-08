@@ -2,6 +2,9 @@
 %define	libname %mklibname %{name} %{major}
 %define	devname %mklibname %{name} -d
 
+%define	libefiboot %mklibname efiboot %{major}
+%define	devefiboot %mklibname efiboot -d
+
 %bcond_with	uclibc
 
 Name:		efivar
@@ -53,6 +56,16 @@ Shared library support for the efitools, efivar and efibootmgr.
 %files -n	%{libname}
 %{_libdir}/lib%{name}.so.%{major}*
 
+%package -n	%{libefiboot}
+Summary:	Shared library for %{name}
+Group:		System/Libraries
+
+%description -n	%{libefiboot}
+Shared library support for the efitools, efivar and efibootmgr.
+
+%files -n	%{libefiboot}
+%{_libdir}/libefiboot.so.%{major}*
+
 %if %{with uclibc}
 %package -n	uclibc-%{libname}
 Summary:	Shared library for %{name} (uClibc build)
@@ -91,12 +104,31 @@ Provides:	%{name}-devel = %{EVRD}
 Development files for libefivar.
 
 %files -n	%{devname}
-%{_includedir}/efivar.h
-%{_includedir}/efivar-guids.h
+%{_includedir}/efivar/efivar-dp.h
+%{_includedir}/efivar/efivar-guids.h
+%{_includedir}/efivar/efivar.h
 %{_libdir}/libefivar.so
 %{_libdir}/pkgconfig/efivar.pc
 %doc
 %{_mandir}/man3/*
+
+
+%package -n	%{devefiboot}
+Summary:	libefiboot development files
+Group:		Development/Other
+Requires:	%{libefiboot} = %{EVRD}
+Provides:	libefiboot-devel = %{EVRD}
+Provides:	efiboot-devel = %{EVRD}
+
+%description -n	%{devefiboot}
+Development files for libefiboot.
+
+%files -n	%{devefiboot}
+%{_includedir}/efivar/efiboot-creator.h
+%{_includedir}/efivar/efiboot-loadopt.h
+%{_includedir}/efivar/efiboot.h
+%{_libdir}/libefiboot.so
+%{_libdir}/pkgconfig/efiboot.pc
 
 #------------------------------------------------------------------
 
