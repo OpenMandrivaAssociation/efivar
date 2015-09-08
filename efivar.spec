@@ -102,8 +102,8 @@ Development files for libefivar.
 
 %prep
 %setup -q
-%apply_patches
 %if %{with uclibc}
+%patch0 -p1
 mkdir .uclibc
 cp -a * .uclibc
 %endif
