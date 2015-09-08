@@ -1,12 +1,12 @@
-%define	major	0
-%define	libname	%mklibname %{name} %{major}
-%define	devname	%mklibname %{name} -d
+%define	major 0
+%define	libname %mklibname %{name} %{major}
+%define	devname %mklibname %{name} -d
 
 %bcond_with	uclibc
 
 Name:		efivar
-Version:	0.15
-Release:	6
+Version:	0.21
+Release:	1
 Summary:	EFI variables management tool
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
@@ -112,7 +112,7 @@ cp -a * .uclibc
 %setup_compile_flags
 export CC=gcc
 
-%make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" V=1 -j1
+%make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" ldflags=%{ldflags} V=1 -j1
 
 %if %{with uclibc}
 pushd .uclibc
