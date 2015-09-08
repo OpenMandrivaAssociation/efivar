@@ -112,7 +112,7 @@ cp -a * .uclibc
 %setup_compile_flags
 export CC=gcc
 
-%make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" ldflags=%{ldflags} V=1 -j1
+%make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" ccldflag="%{ldflags}" V=1 -j1
 
 %if %{with uclibc}
 pushd .uclibc
