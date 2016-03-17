@@ -89,6 +89,8 @@ Development files for libefiboot.
 
 %build
 %setup_compile_flags
+# (tpg) https://github.com/rhinstaller/efivar/issues/47
+export CC=gcc
 
 %make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" ccldflag="%{ldflags}" V=1 -j1
 
