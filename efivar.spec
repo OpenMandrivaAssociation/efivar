@@ -89,7 +89,6 @@ Development files for libefiboot.
 
 %build
 %setup_compile_flags
-export CC=gcc
 
 %make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" ccldflag="%{ldflags}" V=1 -j1
 
