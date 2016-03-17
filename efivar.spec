@@ -6,7 +6,7 @@
 %define devefiboot %mklibname efiboot -d
 
 Name:		efivar
-Version:	0.22
+Version:	0.23
 Release:	1
 Summary:	EFI variables management tool
 License:	LGPLv2.1
