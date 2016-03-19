@@ -88,10 +88,12 @@ Development files for libefiboot.
 %setup -q
 
 %build
+# (tpg) /usr/bin/x86_64-mandriva-linux-gnu-ld: --default-symver: unknown option
+%global ldflags %ldflags -Wl,-fuse-ld=bfd
+
 %setup_compile_flags
 # (tpg) https://github.com/rhinstaller/efivar/issues/47
 export CC=gcc
-
 %make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" ccldflag="%{ldflags}" V=1 -j1
 
 %install
