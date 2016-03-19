@@ -90,6 +90,7 @@ Development files for libefiboot.
 %build
 # (tpg) /usr/bin/x86_64-mandriva-linux-gnu-ld: --default-symver: unknown option
 %global ldflags %ldflags -Wl,-fuse-ld=bfd
+%global optflags %optflags -fno-strict-aliasing
 
 %setup_compile_flags
 # (tpg) https://github.com/rhinstaller/efivar/issues/47
