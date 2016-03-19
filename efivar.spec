@@ -15,7 +15,7 @@ Url:		https://github.com/vathpela/efivar
 Source0:	https://github.com/vathpela/%{name}/releases/download/%{version}/%{name}-%{version}.tar.bz2
 ExclusiveArch:	%{ix86} x86_64
 BuildRequires:	pkgconfig(popt)
-BuildRequires:	kernel-headers
+BuildRequires:	kernel-devel-latest
 
 %description
 efivar is a command line interface to the EFI variables in '/sys/firmware/efi'.
