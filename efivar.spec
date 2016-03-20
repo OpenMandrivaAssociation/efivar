@@ -1,4 +1,6 @@
 %define major 0
+%define _disable_lto 1
+
 %define libname %mklibname %{name} %{major}
 %define devname %mklibname %{name} -d
 
@@ -7,13 +9,14 @@
 
 Name:		efivar
 Version:	0.23
-Release:	3
+Release:	4
 Summary:	EFI variables management tool
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
 Url:		https://github.com/vathpela/efivar
 Source0:	https://github.com/vathpela/%{name}/releases/download/%{version}/%{name}-%{version}.tar.bz2
-ExclusiveArch:	%{ix86} x86_64
+Patch0:		efivar-0.23-kernel-4.x.patch
+ExclusiveArch:	%{ix86} x86_64 aarch64
 BuildRequires:	pkgconfig(popt)
 BuildRequires:	kernel-devel-latest
 
@@ -23,6 +26,7 @@ efivar is a command line interface to the EFI variables in '/sys/firmware/efi'.
 %files
 %doc COPYING README.md TODO
 %{_bindir}/efivar
+%{_bindir}/efivar-static
 %{_mandir}/man1/*
 
 #------------------------------------------------------------------
@@ -87,10 +91,11 @@ Development files for libefiboot.
 
 %prep
 %setup -q
+%apply_patches
 
 %build
 # (tpg) /usr/bin/x86_64-mandriva-linux-gnu-ld: --default-symver: unknown option
-%global ldflags %ldflags -Wl,-fuse-ld=bfd
+%global ldflags -Wl,-fuse-ld=bfd
 %global optflags %optflags -fno-strict-aliasing
 
 %setup_compile_flags
