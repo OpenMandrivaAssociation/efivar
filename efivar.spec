@@ -19,6 +19,7 @@ Patch0:		efivar-0.23-kernel-4.x.patch
 ExclusiveArch:	%{ix86} x86_64 aarch64
 BuildRequires:	pkgconfig(popt)
 BuildRequires:	kernel-devel-latest
+BuildRequires:	glibc-static-devel
 
 %description
 efivar is a command line interface to the EFI variables in '/sys/firmware/efi'.
