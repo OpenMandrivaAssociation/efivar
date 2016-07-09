@@ -15,6 +15,7 @@ License:	LGPLv2.1
 Group:		System/Kernel and hardware
 Url:		https://github.com/vathpela/efivar
 Source0:	https://github.com/vathpela/%{name}/releases/download/%{version}/%{name}-%{version}.tar.bz2
+Patch0:		efivar-0.24-fix-linker-options.patch
 ExclusiveArch:	%{ix86} x86_64 aarch64
 BuildRequires:	pkgconfig(popt)
 BuildRequires:	kernel-release-devel-latest
@@ -100,7 +101,7 @@ Development files for libefiboot.
 # (tpg) https://github.com/rhinstaller/efivar/issues/47
 # clang does not implement gnu symbol versioning
 export CC=gcc
-%make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" ccldflag="%{ldflags}" V=1 -j1
+%make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" CFLAGS="%{cflags}" LDFLAGS="%{ldflags}" ccldflag="%{ldflags}" V=1 -j1
 
 %install
 %makeinstall_std libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}"
