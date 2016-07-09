@@ -8,17 +8,16 @@
 %define devefiboot %mklibname efiboot -d
 
 Name:		efivar
-Version:	0.23
-Release:	4
+Version:	0.24
+Release:	1
 Summary:	EFI variables management tool
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
 Url:		https://github.com/vathpela/efivar
 Source0:	https://github.com/vathpela/%{name}/releases/download/%{version}/%{name}-%{version}.tar.bz2
-Patch0:		efivar-0.23-kernel-4.x.patch
 ExclusiveArch:	%{ix86} x86_64 aarch64
 BuildRequires:	pkgconfig(popt)
-BuildRequires:	kernel-devel-latest
+BuildRequires:	kernel-release-devel-latest
 BuildRequires:	glibc-static-devel
 
 %description
@@ -101,8 +100,9 @@ Development files for libefiboot.
 
 %setup_compile_flags
 # (tpg) https://github.com/rhinstaller/efivar/issues/47
+# clang does not implement gnu symbol versioning
 export CC=gcc
-%make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" ccldflag="%{ldflags}" V=1 -j1
+%make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" CFLAGS="%{optflags}" LDFLAGS="%{ldflags}" ccldflag="%{ldflags}" V=1 -j1
 
 %install
 %makeinstall_std libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}"
