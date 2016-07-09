@@ -101,7 +101,7 @@ Development files for libefiboot.
 # (tpg) https://github.com/rhinstaller/efivar/issues/47
 # clang does not implement gnu symbol versioning
 export CC=gcc
-%make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" CFLAGS="%{cflags}" LDFLAGS="%{ldflags}" ccldflag="%{ldflags}" V=1 -j1
+%make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" CFLAGS="%{optflags}" LDFLAGS="%{ldflags}" ccldflag="%{ldflags}" V=1 -j1
 
 %install
 %makeinstall_std libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}"
