@@ -15,7 +15,6 @@ License:	LGPLv2.1
 Group:		System/Kernel and hardware
 Url:		https://github.com/vathpela/efivar
 Source0:	https://github.com/vathpela/%{name}/releases/download/%{version}/%{name}-%{version}.tar.bz2
-Patch0:		efivar-0.24-fix-linker-options.patch
 ExclusiveArch:	%{ix86} x86_64 aarch64
 BuildRequires:	pkgconfig(popt)
 BuildRequires:	kernel-release-devel-latest
