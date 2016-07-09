@@ -6,4 +6,4 @@ diff -Naur efivar-0.24/gcc.specs efivar-0.24.tpg/gcc.specs
  
  *link:
 -+ %{!static:--fatal-warnings} --no-undefined-version --no-allow-shlib-undefined --add-needed -z now --build-id %{!static:%{!shared:-PIE}} %{shared:-z relro -PIC} %{static:%<pie}
-++ %{!static:--fatal-warnings} --no-undefined-version --no-allow-shlib-undefined --add-needed -z now --build-id %{!static:%{!shared:-fPIE}} %{shared:-z relro -fPIC} %{static:%<pie}
+++ %{!static:--fatal-warnings} --no-undefined-version --no-allow-shlib-undefined --add-needed -z now --build-id %{!static:%{!shared:-fPIE}} %{shared:-z relro -PIC} %{static:%<pie}
