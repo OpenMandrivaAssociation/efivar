@@ -1,5 +1,4 @@
-%define major 0
-%define _disable_lto 1
+%define major 1
 
 %define libname %mklibname %{name} %{major}
 %define devname %mklibname %{name} -d
@@ -7,14 +6,16 @@
 %define libefiboot %mklibname efiboot %{major}
 %define devefiboot %mklibname efiboot -d
 
+%define minor %(echo %{version} |cut -d. -f2)
+
 Name:		efivar
-Version:	0.24
+Version:	0.30
 Release:	1
 Summary:	EFI variables management tool
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
-Url:		https://github.com/vathpela/efivar
-Source0:	https://github.com/vathpela/%{name}/releases/download/%{version}/%{name}-%{version}.tar.bz2
+Url:		https://github.com/rhinstaller/efivar
+Source0:	https://github.com/rhinstaller/%{name}/releases/download/%{minor}/%{name}-%{version}.tar.bz2
 ExclusiveArch:	%{ix86} x86_64 aarch64
 BuildRequires:	pkgconfig(popt)
 BuildRequires:	kernel-release-devel-latest
@@ -54,7 +55,7 @@ Shared library support for the efitools, efivar and efibootmgr.
 #------------------------------------------------------------------
 
 %package -n %{devname}
-Summary:	libefivar development files
+Summary:	The libefivar development files
 Group:		Development/Other
 Requires:	%{libname} = %{EVRD}
 Provides:	%{name}-devel = %{EVRD}
@@ -71,7 +72,7 @@ Development files for libefivar.
 %{_mandir}/man3/*
 
 %package -n %{devefiboot}
-Summary:	libefiboot development files
+Summary:	The libefiboot development files
 Group:		Development/Other
 Requires:	%{libefiboot} = %{EVRD}
 Provides:	libefiboot-devel = %{EVRD}
@@ -95,14 +96,16 @@ Development files for libefiboot.
 
 %build
 # (tpg) /usr/bin/x86_64-mandriva-linux-gnu-ld: --default-symver: unknown option
+# (itchka) Latest version will not build without -flto
 %global ldflags -Wl,-fuse-ld=bfd
-%global optflags %optflags -fno-strict-aliasing
+%global optflags %optflags -flto -fno-strict-aliasing
 
 %setup_compile_flags
 # (tpg) https://github.com/rhinstaller/efivar/issues/47
 # clang does not implement gnu symbol versioning
 export CC=gcc
-%make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" CFLAGS="%{optflags}" LDFLAGS="%{ldflags}" ccldflag="%{ldflags}" V=1 -j1
+
+%make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" CFLAGS="%{optflags}" LDFLAGS="%{ldflags}" gcc_ccldflags="%{ldflags}" V=1 -j1
 
 %install
 %makeinstall_std libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}"
