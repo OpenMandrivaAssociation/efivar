@@ -28,7 +28,6 @@ efivar is a command line interface to the EFI variables in '/sys/firmware/efi'.
 %files
 %doc COPYING README.md TODO
 %{_bindir}/efivar
-%exclude %{_bindir}/efivar-static
 %{_mandir}/man1/*
 
 #------------------------------------------------------------------
