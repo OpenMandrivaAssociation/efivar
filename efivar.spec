@@ -9,7 +9,7 @@
 %define minor %(echo %{version} |cut -d. -f2)
 
 Name:		efivar
-Version:	0.30
+Version:	0.31
 Release:	1
 Summary:	EFI variables management tool
 License:	LGPLv2.1
