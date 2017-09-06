@@ -1,5 +1,2 @@
-removed_sources:
-  efivar-0.24.tar.bz2: 2c0242c03bcb0ca07daa083aa03533203a1a752a
-  efivar-0.30.tar.bz2: d76fe8cf679606b13c3037b340b50790d269de64
 sources:
-  efivar-0.30.tar.bz2: 535d847fb40618aff7c80ebfe99a4d77ee635c24
+  efivar-31.tar.bz2: ae5b4c3aeb29fe0ef5212142b0a21d6f003dd266

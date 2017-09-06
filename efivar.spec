@@ -9,13 +9,14 @@
 %define minor %(echo %{version} |cut -d. -f2)
 
 Name:		efivar
-Version:	0.30
+Version:	31
 Release:	1
 Summary:	EFI variables management tool
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
 Url:		https://github.com/rhinstaller/efivar
 Source0:	https://github.com/rhinstaller/%{name}/releases/download/%{minor}/%{name}-%{version}.tar.bz2
+Patch0:		workaround-for-bug64.patch
 ExclusiveArch:	%{ix86} x86_64 aarch64
 BuildRequires:	pkgconfig(popt)
 BuildRequires:	kernel-release-devel-latest
@@ -27,7 +28,6 @@ efivar is a command line interface to the EFI variables in '/sys/firmware/efi'.
 %files
 %doc COPYING README.md TODO
 %{_bindir}/efivar
-%{_bindir}/efivar-static
 %{_mandir}/man1/*
 
 #------------------------------------------------------------------
