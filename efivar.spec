@@ -20,7 +20,6 @@ Patch0:		workaround-for-bug64.patch
 Patch0001:	0001-efivarfs-vars-usleep-before-reading-from-efivarfs-if.patch
 ExclusiveArch:	%{ix86} x86_64 aarch64
 BuildRequires:	pkgconfig(popt)
-BuildRequires:	kernel-release-devel-latest
 BuildRequires:	glibc-static-devel
 
 %description
