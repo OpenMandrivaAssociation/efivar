@@ -64,6 +64,7 @@ Provides:	%{name}-devel = %{EVRD}
 Development files for libefivar.
 
 %files -n %{devname}
+%{_includedir}/efivar/
 %{_includedir}/efivar/efivar-dp.h
 %{_includedir}/efivar/efivar-guids.h
 %{_includedir}/efivar/efivar.h
