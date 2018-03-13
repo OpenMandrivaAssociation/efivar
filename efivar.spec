@@ -23,6 +23,7 @@ Patch0001:	0001-efivarfs-vars-usleep-before-reading-from-efivarfs-if.patch
 ExclusiveArch:	%{ix86} x86_64 aarch64
 BuildRequires:	pkgconfig(popt)
 BuildRequires:	glibc-static-devel
+Conflicts:	%{mklibname efivar 0} < %{EVRD}
 
 %description
 efivar is a command line interface to the EFI variables in '/sys/firmware/efi'.
@@ -37,6 +38,7 @@ efivar is a command line interface to the EFI variables in '/sys/firmware/efi'.
 %package -n %{libname}
 Summary:	Shared library for %{name}
 Group:		System/Libraries
+%rename		%_lib%{name}0
 
 %description -n	%{libname}
 Shared library support for the efitools, efivar and efibootmgr.
