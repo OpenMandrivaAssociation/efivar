@@ -95,7 +95,7 @@ Development files for libefiboot.
 
 %prep
 %setup -q
-%apply_patches
+%autopatch -p1
 
 %build
 # (tpg) /usr/bin/x86_64-mandriva-linux-gnu-ld: --default-symver: unknown option
