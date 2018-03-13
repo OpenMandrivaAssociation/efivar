@@ -108,7 +108,7 @@ Development files for libefiboot.
 # clang does not implement gnu symbol versioning
 export CC=gcc
 
-%make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" CFLAGS="%{optflags}" LDFLAGS="%{ldflags}" gcc_ccldflags="%{ldflags}" V=1 -j1
+%make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" CFLAGS="%{optflags}" LDFLAGS="%{ldflags}" gcc_ccldflags="%{ldflags}" V=1
 
 %install
 %makeinstall_std libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}"
