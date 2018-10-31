@@ -10,7 +10,7 @@
 
 Name:		efivar
 Version:	36
-Release:	2
+Release:	3
 Summary:	EFI variables management tool
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
