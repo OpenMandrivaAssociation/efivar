@@ -10,14 +10,13 @@
 
 Name:		efivar
 Version:	36
-Release:	3
+Release:	4
 Summary:	EFI variables management tool
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
 Url:		https://github.com/rhinstaller/efivar
 Source0:	https://github.com/rhinstaller/%{name}/releases/download/%{minor}/%{name}-%{version}.tar.bz2
 Patch0:		workaround-for-bug64.patch
-ExclusiveArch:	%{ix86} %{x86_64} aarch64
 BuildRequires:	pkgconfig(popt)
 BuildRequires:	kernel-release-devel-latest
 BuildRequires:	glibc-static-devel
