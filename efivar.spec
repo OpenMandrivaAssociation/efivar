@@ -9,8 +9,8 @@
 %define minor %(echo %{version} |cut -d. -f2)
 
 Name:		efivar
-Version:	36
-Release:	4
+Version:	37
+Release:	1
 Summary:	EFI variables management tool
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
@@ -90,21 +90,20 @@ Development files for libefiboot.
 #------------------------------------------------------------------
 
 %prep
-%setup -q
-%apply_patches
+%autosetup -p1
 
 %build
 # (tpg) /usr/bin/x86_64-mandriva-linux-gnu-ld: --default-symver: unknown option
 # (itchka) Latest version will not build without -flto
-%global ldflags -Wl,-fuse-ld=bfd
-%global optflags %optflags -flto -fno-strict-aliasing
+#global ldflags -Wl,-fuse-ld=bfd
+#global optflags %optflags -flto -fno-strict-aliasing
 
 %setup_compile_flags
 # (tpg) https://github.com/rhinstaller/efivar/issues/47
 # clang does not implement gnu symbol versioning
-export CC=gcc
+# export CC=gcc
 
-%make libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" CFLAGS="%{optflags}" LDFLAGS="%{ldflags}" gcc_ccldflags="%{ldflags}" V=1 -j1
+%make_build libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" CFLAGS="%{optflags}" LDFLAGS="%{ldflags}" gcc_ccldflags="%{ldflags}" V=1 -j1
 
 %install
-%makeinstall_std libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}"
+%make_install libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}"
