@@ -93,16 +93,7 @@ Development files for libefiboot.
 %autosetup -p1
 
 %build
-# (tpg) /usr/bin/x86_64-mandriva-linux-gnu-ld: --default-symver: unknown option
-# (itchka) Latest version will not build without -flto
-#global ldflags -Wl,-fuse-ld=bfd
-#global optflags %optflags -flto -fno-strict-aliasing
-
 %setup_compile_flags
-# (tpg) https://github.com/rhinstaller/efivar/issues/47
-# clang does not implement gnu symbol versioning
-# export CC=gcc
-
 %make_build libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" CFLAGS="%{optflags}" LDFLAGS="%{ldflags}" gcc_ccldflags="%{ldflags}" V=1 -j1
 
 %install
