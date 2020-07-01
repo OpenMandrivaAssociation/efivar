@@ -111,9 +111,12 @@ git am %{patches} </dev/null
 git config --unset user.email
 git config --unset user.name
 
+# (tpg) 2020-07-01 looks like LLD does not support --add-needed
+sed -i -e 's#-Wl,--add-needed##g' src/include/defaults.mk
+
 %build
 %set_build_flags
-%make_build libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" COMPILER=%{__cc} CC=%{__cc} OPTIMIZE="%{optflags}" LDFLAGS="%{ldflags}" gcc_ccldflags="%{ldflags}" V=1 -j1
+%make_build libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" COMPILER=clang CC=clang OPTIMIZE="%{optflags}" LDFLAGS="%{ldflags}" gcc_ccldflags="%{ldflags}" V=1 -j1
 
 %install
 %make_install libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}"
