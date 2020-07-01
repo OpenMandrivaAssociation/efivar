@@ -1,0 +1,34 @@
+From f27c2a9e2602b54066e8d557e1cee3aabfd0ec38 Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Fri, 11 Oct 2019 10:52:12 -0400
+Subject: [PATCH 45/86] Make the top level makefile not parallelize.
+
+Right now if you run:
+
+  make
+  make -j9 clean all
+
+"clean" and "all" will run in parallel, and "all" will often finish
+before "clean" will.  This is obviously wrong.
+
+This patch adds .NOTPARALLEL: at the top level, so none of the top-level
+targets will parallelize, because we really never want that.
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 2d134ea9d6f..61b79a60369 100644
+--- a/Makefile
++++ b/Makefile
+@@ -83,4 +83,4 @@ archive: abicheck bumpver abidw tag efivar.spec
+ 	@rm -rf /tmp/efivar-$(GITTAG)
+ 	@echo "The archive is in efivar-$(GITTAG).tar.bz2"
+ 
+-
++.NOTPARALLEL:
+-- 
+2.24.1
+

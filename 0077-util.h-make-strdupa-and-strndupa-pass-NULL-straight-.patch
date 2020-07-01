@@ -1,0 +1,54 @@
+From 07fbba7acf9c757a3ae8192a64cb3a1f631c5f74 Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Thu, 30 Jan 2020 13:57:18 -0500
+Subject: [PATCH 77/86] util.h: make strdupa() and strndupa() pass NULL
+ straight through.
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ src/util.h | 22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
+
+diff --git a/src/util.h b/src/util.h
+index b7b03931d7e..f4c6c27cc73 100644
+--- a/src/util.h
++++ b/src/util.h
+@@ -147,9 +147,13 @@ lcm(uint64_t x, uint64_t y)
+ #define strdupa(s)						\
+        (__extension__ ({					\
+ 		const char *__in = (s);				\
+-		size_t __len = strlen (__in);			\
+-		char *__out = (char *) alloca (__len + 1);	\
+-		strcpy(__out, __in);				\
++		size_t __len;					\
++		char *__out = NULL;				\
++		if (__in) {					\
++			__len = strlen (__in);			\
++			__out = (char *) alloca (__len + 1);	\
++			strcpy(__out, __in);			\
++		}						\
+ 		__out;						\
+ 	}))
+ #endif
+@@ -158,10 +162,14 @@ lcm(uint64_t x, uint64_t y)
+ #define strndupa(s, l)						\
+        (__extension__ ({					\
+ 		const char *__in = (s);				\
+-		size_t __len = strnlen (__in, (l));		\
+-		char *__out = (char *) alloca (__len + 1);	\
+-		strncpy(__out, __in, __len);			\
+-		__out[__len] = '\0';				\
++		size_t __len;					\
++		char *__out = NULL;				\
++		if (__in) {					\
++			__len = strnlen (__in, (l));		\
++			__out = (char *) alloca (__len + 1);	\
++			strncpy(__out, __in, __len);		\
++			__out[__len] = '\0';			\
++		}						\
+ 		__out;						\
+ 	}))
+ #endif
+-- 
+2.24.1
+

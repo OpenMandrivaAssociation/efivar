@@ -1,0 +1,38 @@
+From f4952ecf70ab6de206d63f24d050f4303eccce45 Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Thu, 30 Jan 2020 10:47:11 -0500
+Subject: [PATCH 73/86] makeguids: confuse ccc-analyzer less.
+
+Putting the non-NULL and non-NUL tests inside the loop confuses
+ccc-analyzer into thinking it might be NULL later when we pass it to
+strchr().
+
+It can't, but I like a clean scan.
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ src/makeguids.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/src/makeguids.c b/src/makeguids.c
+index f12dac3bb15..c0a9db1509c 100644
+--- a/src/makeguids.c
++++ b/src/makeguids.c
+@@ -141,9 +141,11 @@ main(int argc, char *argv[])
+ 
+ 	char *guidstr = inbuf;
+ 	unsigned int line;
+-	for (line = 1; (uintptr_t)guidstr - (uintptr_t)inbuf < inlen; line++) {
+-		if (guidstr && guidstr[0] == '\0')
+-			break;
++	for (line = 1;
++	     guidstr && guidstr[0] != '\0' &&
++		(uintptr_t)guidstr - (uintptr_t)inbuf < inlen;
++	     line++) {
++
+ 		outbuf = realloc(outbuf, line * sizeof (struct guidname));
+ 		if (!outbuf)
+ 			err(1, "makeguids");
+-- 
+2.24.1
+

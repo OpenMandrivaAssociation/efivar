@@ -1,0 +1,35 @@
+From e79af5540f11bf04905fd13660b0bb80ec995094 Mon Sep 17 00:00:00 2001
+From: Chih-Wei Huang <cwhuang@linux.org.tw>
+Date: Wed, 22 Jan 2020 11:36:58 +0800
+Subject: [PATCH 66/86] Android: fix missing field initializers
+
+To fix the error:
+
+external/efivar/src/linux-nvme.c:73:10: error: missing field 'fmt' initializer [-Werror,-Wmissing-field-initializers]
+                {NULL, }
+                       ^
+1 error generated.
+
+Fixes: c41da0bd ("Handle /sys/devices/virtual/{nvme-fabrics,nvme-subsystem} devices")
+
+Signed-off-by: Chih-Wei Huang <cwhuang@linux.org.tw>
+---
+ src/Android.mk | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Android.mk b/src/Android.mk
+index 57ac2b55846..f6af87c51ac 100644
+--- a/src/Android.mk
++++ b/src/Android.mk
+@@ -49,7 +49,7 @@ LIBEFIVAR_SOURCES := \
+ include $(LOCAL_PATH)/include/version.mk
+ 
+ LOCAL_SRC_FILES := $(LIBEFIBOOT_SOURCES) $(LIBEFIVAR_SOURCES)
+-LOCAL_CFLAGS := -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -std=gnu11 -DLIBEFIVAR_VERSION=$(VERSION)
++LOCAL_CFLAGS := -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -std=gnu11 -DLIBEFIVAR_VERSION=$(VERSION) -Wno-missing-field-initializers
+ LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
+ LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_C_INCLUDES) $(LOCAL_C_INCLUDES)/efivar $(local-generated-sources-dir)
+ LIBEFIVAR_GUIDS_H := $(local-generated-sources-dir)/efivar/efivar-guids.h
+-- 
+2.24.1
+

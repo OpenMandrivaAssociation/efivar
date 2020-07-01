@@ -1,0 +1,195 @@
+From 89ed4a7d1fc1e1164c9f4ad2f0f8a3d1c0f7d90e Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Mon, 3 Feb 2020 13:47:08 -0500
+Subject: [PATCH 81/86] Add the beginnings of our security library.
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ src/Android.mk              |  5 ++++-
+ src/Makefile                | 20 +++++++++++++++-----
+ src/efisec.h                | 15 +++++++++++++++
+ src/efisec.pc.in            | 11 +++++++++++
+ src/include/efivar/efisec.h | 17 +++++++++++++++++
+ src/libefisec.map.in        |  7 +++++++
+ src/sec.c                   | 16 ++++++++++++++++
+ 7 files changed, 85 insertions(+), 6 deletions(-)
+ create mode 100644 src/efisec.h
+ create mode 100644 src/efisec.pc.in
+ create mode 100644 src/include/efivar/efisec.h
+ create mode 100644 src/libefisec.map.in
+ create mode 100644 src/sec.c
+
+diff --git a/src/Android.mk b/src/Android.mk
+index f6af87c51ac..5a06137aa21 100644
+--- a/src/Android.mk
++++ b/src/Android.mk
+@@ -46,9 +46,12 @@ LIBEFIVAR_SOURCES := \
+ 	lib.c \
+ 	vars.c
+ 
++LIBEFISEC_SOURCES := \
++	sec.c
++
+ include $(LOCAL_PATH)/include/version.mk
+ 
+-LOCAL_SRC_FILES := $(LIBEFIBOOT_SOURCES) $(LIBEFIVAR_SOURCES)
++LOCAL_SRC_FILES := $(LIBEFIBOOT_SOURCES) $(LIBEFIVAR_SOURCES) $(LIBEFISEC_SOURCES)
+ LOCAL_CFLAGS := -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -std=gnu11 -DLIBEFIVAR_VERSION=$(VERSION) -Wno-missing-field-initializers
+ LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
+ LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_C_INCLUDES) $(LOCAL_C_INCLUDES)/efivar $(local-generated-sources-dir)
+diff --git a/src/Makefile b/src/Makefile
+index b0ef8ec29a5..883e058facf 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -5,14 +5,16 @@ include $(TOPDIR)/src/include/version.mk
+ include $(TOPDIR)/src/include/rules.mk
+ include $(TOPDIR)/src/include/defaults.mk
+ 
+-LIBTARGETS=libefivar.so libefiboot.so
+-STATICLIBTARGETS=libefivar.a libefiboot.a
++LIBTARGETS=libefivar.so libefiboot.so libefisec.so
++STATICLIBTARGETS=libefivar.a libefiboot.a libefisec.a
+ BINTARGETS=efivar
+ STATICBINTARGETS=efivar-static
+-PCTARGETS=efivar.pc efiboot.pc
++PCTARGETS=efivar.pc efiboot.pc efisec.pc
+ TARGETS=$(LIBTARGETS) $(BINTARGETS) $(PCTARGETS)
+ STATICTARGETS=$(STATICLIBTARGETS) $(STATICBINTARGETS)
+ 
++LIBEFISEC_SOURCES = sec.c
++LIBEFISEC_OBJECTS = $(patsubst %.c,%.o,$(LIBEFISEC_SOURCES))
+ LIBEFIBOOT_SOURCES = crc32.c creator.c disk.c gpt.c loadopt.c path-helpers.c \
+ 		     linux.c $(sort $(wildcard linux-*.c))
+ LIBEFIBOOT_OBJECTS = $(patsubst %.c,%.o,$(LIBEFIBOOT_SOURCES))
+@@ -23,8 +25,9 @@ LIBEFIVAR_OBJECTS = $(patsubst %.S,%.o,$(patsubst %.c,%.o,$(LIBEFIVAR_SOURCES)))
+ EFIVAR_SOURCES = efivar.c
+ GENERATED_SOURCES = include/efivar/efivar-guids.h guid-symbols.c
+ MAKEGUIDS_SOURCES = makeguids.c guid.c
+-ALL_SOURCES=$(LIBEFIBOOT_SOURCES) $(LIBEFIVAR_SOURCES) $(MAKEGUIDS_SOURCES) \
+-	$(sort $(wildcard include/efivar/*.h)) $(GENERATED_SOURCES) $(EFIVAR_SOURCES)
++ALL_SOURCES=$(LIBEFISEC_SOURCES) $(LIBEFIBOOT_SOURCES) $(LIBEFIVAR_SOURCES) \
++	    $(MAKEGUIDS_SOURCES) $(GENERATED_SOURCES) $(EFIVAR_SOURCES) \
++	    $(sort $(wildcard include/efivar/*.h))
+ 
+ $(call deps-of,$(ALL_SOURCES)) : | deps
+ -include $(call deps-of,$(ALL_SOURCES))
+@@ -86,6 +89,12 @@ libefiboot.so : | libefiboot.map libefivar.so
+ libefiboot.so : LIBS=efivar
+ libefiboot.so : MAP=libefiboot.map
+ 
++libefisec.a : $(patsubst %.o,%.static.o,$(LIBEFISEC_OBJECTS))
++
++libefisec.so : $(LIBEFISEC_OBJECTS)
++libefisec.so : | libefisec.map
++libefisec.so : MAP=libefisec.map
++
+ deps : $(ALL_SOURCES)
+ 	@$(MAKE) -f $(SRCDIR)/include/deps.mk deps SOURCES="$(ALL_SOURCES)"
+ 
+@@ -116,6 +125,7 @@ test : all
+ .PHONY: test deps abiclean abixml
+ .SECONDARY : libefivar.so.1.$(VERSION) libefivar.so.1
+ .SECONDARY : libefiboot.so.1.$(VERSION) libefiboot.so.1
++.SECONDARY : libefisec.so.1.$(VERSION) libefisec.so.1
+ .SECONDARY : include/efivar/efivar-guids.h guid-symbols.c
+ .INTERMEDIATE : guids.bin names.bin
+ .PRECIOUS : guid-symbols.o makeguids
+diff --git a/src/efisec.h b/src/efisec.h
+new file mode 100644
+index 00000000000..15d0f6d10e2
+--- /dev/null
++++ b/src/efisec.h
+@@ -0,0 +1,15 @@
++// SPDX-License-Identifier: LGPL-2.1-or-later
++/*
++ * efisec.h
++ * Copyright 2018 Peter Jones <pjones@redhat.com>
++ */
++
++#ifndef PRIVATE_EFISEC_H_
++#define PRIVATE_EFISEC_H_
++
++#include "efivar.h"
++#include <efivar/efisec.h>
++
++#endif /* !PRIVATE_EFISEC_H_ */
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/efisec.pc.in b/src/efisec.pc.in
+new file mode 100644
+index 00000000000..d3d75aac509
+--- /dev/null
++++ b/src/efisec.pc.in
+@@ -0,0 +1,11 @@
++prefix=@@PREFIX@@
++exec_prefix=@@EXEC_PREFIX@@
++libdir=@@LIBDIR@@
++includedir=@@INCLUDEDIR@@
++
++Name: efisec
++Description: UEFI Security Features
++Version: @@VERSION@@
++Libs: -L${libdir} -lefivar -lefisec
++Libs.private: -ldl
++Cflags: -I${includedir}/efivar
+diff --git a/src/include/efivar/efisec.h b/src/include/efivar/efisec.h
+new file mode 100644
+index 00000000000..0ee5abe8bfd
+--- /dev/null
++++ b/src/include/efivar/efisec.h
+@@ -0,0 +1,17 @@
++// SPDX-License-Identifier: LGPL-2.1-or-later
++/*
++ * libefisec - library for the manipulation of EFI boot variables
++ * Copyright 2020 Peter M. Jones <pjones@redhat.com>
++ * Copyright 2020 Red Hat, Inc.
++ */
++#ifndef EFISEC_H
++#define EFISEC_H 1
++
++#include <efivar/efivar.h>
++
++extern uint32_t efi_get_libefisec_version(void)
++	__attribute__((__visibility__("default")));
++
++#endif /* EFISEC_H */
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/libefisec.map.in b/src/libefisec.map.in
+new file mode 100644
+index 00000000000..2e732cf1d9b
+--- /dev/null
++++ b/src/libefisec.map.in
+@@ -0,0 +1,7 @@
++libefisec.so.0 {
++	local:	*;
++};
++
++LIBEFISEC_1.38 {
++	global:	efi_get_libefisec_version;
++} libefisec.so.0;
+diff --git a/src/sec.c b/src/sec.c
+new file mode 100644
+index 00000000000..6b6a70bb784
+--- /dev/null
++++ b/src/sec.c
+@@ -0,0 +1,16 @@
++// SPDX-License-Identifier: LGPL-2.1-or-later
++/*
++ * sec.c
++ * Copyright 2020 Peter Jones <pjones@redhat.com>
++ *
++ */
++
++#include "efivar.h"
++
++uint32_t PUBLIC
++efi_get_libefisec_version(void)
++{
++	return LIBEFIVAR_VERSION;
++}
++
++// vim:fenc=utf-8:tw=75:noet
+-- 
+2.24.1
+

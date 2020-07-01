@@ -1,0 +1,38 @@
+From fdf91db0e35bcc48164c8778fcd0f3ace7ab9403 Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Mon, 17 Jun 2019 13:59:29 -0400
+Subject: [PATCH 25/86] guids: add 'grub' guid for grubenv.
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ src/guids.txt        | 1 +
+ src/libefivar.map.in | 3 +++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/src/guids.txt b/src/guids.txt
+index 0d48ddbad30..2486255b26c 100644
+--- a/src/guids.txt
++++ b/src/guids.txt
+@@ -21,6 +21,7 @@
+ 826ca512-cf10-4ac9-b187-be01496631bd	sha1	SHA-1
+ 82988420-7467-4490-9059-feb448dd1963	lenovo_me_config	Lenovo ME Configuration Menu
+ 8be4df61-93ca-11d2-aa0d-00e098032b8c	global	EFI Global Variable
++91376aff-cba6-42be-949d-06fde81128e8	grub	GRUB
+ a5c059a1-94e4-4aa7-87b5-ab155c2bf072	x509_cert	X.509 Certificate
+ a7717414-c616-4977-9420-844712a735bf	rsa2048_sha256_cert	RSA 2048 with SHA-256 Certificate
+ a7d8d9a6-6ab0-4aeb-ad9d-163e59a7a380	lenovo_diag_splash	Lenovo Diagnostic Splash Screen
+diff --git a/src/libefivar.map.in b/src/libefivar.map.in
+index 682e622c302..54bfb765998 100644
+--- a/src/libefivar.map.in
++++ b/src/libefivar.map.in
+@@ -135,4 +135,7 @@ LIBEFIVAR_1.38 {
+ 	global: efi_error_pop;
+ 		efi_set_loglevel;
+ 		efi_get_libefivar_version;
++		efi_guid_grub;
++		efi_variable_alloc;
++		efi_variable_export_dmpstore;
+ } LIBEFIVAR_1.37;
+-- 
+2.24.1
+

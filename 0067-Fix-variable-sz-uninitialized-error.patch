@@ -1,0 +1,39 @@
+From 9dc04c2fd88b6e0e0fe411885041925d52f71af3 Mon Sep 17 00:00:00 2001
+From: Chih-Wei Huang <cwhuang@linux.org.tw>
+Date: Wed, 22 Jan 2020 12:16:12 +0800
+Subject: [PATCH 67/86] Fix variable 'sz' uninitialized error
+
+To fix the error:
+
+external/efivar/src/linux-virtual-root.c:66:4: error: variable 'sz' is uninitialized when used here [-Werror,-Wuninitialized]
+                        sz += pos1;
+                        ^~
+external/efivar/src/linux-virtual-root.c:45:12: note: initialize the variable 'sz' to silence this warning
+        ssize_t sz;
+                  ^
+                   = 0
+1 error generated.
+
+Fixes: c41da0bd ("Handle /sys/devices/virtual/{nvme-fabrics,nvme-subsystem} devices")
+
+Signed-off-by: Chih-Wei Huang <cwhuang@linux.org.tw>
+---
+ src/linux-virtual-root.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/linux-virtual-root.c b/src/linux-virtual-root.c
+index 75fbbfc1de6..2d39c28ebb6 100644
+--- a/src/linux-virtual-root.c
++++ b/src/linux-virtual-root.c
+@@ -42,7 +42,7 @@ static ssize_t
+ parse_virtual_root(struct device *dev UNUSED, const char *current, const char *root UNUSED)
+ {
+ 	int rc;
+-	ssize_t sz;
++	ssize_t sz = 0;
+ 	int pos0 = 0, pos1 = 0;
+ 	struct subdir {
+ 		const char * const name;
+-- 
+2.24.1
+

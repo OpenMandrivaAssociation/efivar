@@ -1,0 +1,42 @@
+From 025e71fb477bfc227d1ba59b85ee8153703cc4a3 Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Thu, 30 Jan 2020 10:35:35 -0500
+Subject: [PATCH 72/86] Remove a dead store.
+
+ccc-analyzer noticed:
+
+Bug Group	Bug Type	File		Function/Method	Line	Path Length
+Dead store	Dead increment	linux-nvme.c	parse_nvme	89	1
+
+Which is a "sz += ..." I accidentally left in when I switched all the
+file path parsers to just using the string pointer "current" and
+subtracting it from "path" at the end.
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ src/linux-nvme.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/src/linux-nvme.c b/src/linux-nvme.c
+index d0941e85e08..33edcd4fc7d 100644
+--- a/src/linux-nvme.c
++++ b/src/linux-nvme.c
+@@ -61,7 +61,6 @@ parse_nvme(struct device *dev, const char *path, const char *root UNUSED)
+ 	int32_t tosser0, tosser1, tosser2, ctrl_id, ns_id, partition;
+ 	uint8_t *filebuf = NULL;
+ 	int pos0 = -1, pos1 = -1, pos2 = -1;
+-	ssize_t sz = 0;
+ 	struct subdir {
+ 		const char * const name;
+ 		const char * const fmt;
+@@ -86,7 +85,6 @@ parse_nvme(struct device *dev, const char *path, const char *root UNUSED)
+ 		      *subdirs[i].pos0, *subdirs[i].pos1);
+ 		dbgmk("         ", *subdirs[i].pos0, *subdirs[i].pos1);
+ 		if (*subdirs[i].pos0 >= 0 && *subdirs[i].pos1 >= *subdirs[i].pos0) {
+-			sz += *subdirs[i].pos1;
+ 			current += *subdirs[i].pos1;
+ 			break;
+ 		}
+-- 
+2.24.1
+

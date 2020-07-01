@@ -1,0 +1,33 @@
+From 53e10dd9a55f6c5db0fec2ea44f176e3f013e233 Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Thu, 10 Oct 2019 13:52:46 -0400
+Subject: [PATCH 48/86] Make CC_FOR_BUILD and CCLD_FOR_BUILD override
+ HOSTCC/HOSTCCLD
+
+---
+ src/include/deprecated.mk | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/src/include/deprecated.mk b/src/include/deprecated.mk
+index a31b080dbf6..00abc8c8226 100644
+--- a/src/include/deprecated.mk
++++ b/src/include/deprecated.mk
+@@ -38,5 +38,15 @@ ifneq ($(origin bindir),undefined)
+     override BINDIR = $(bindir)
+   endif
+ endif
++ifneq ($(origin CC_FOR_BUILD),undefined)
++  ifeq ($(origin HOSTCC),file)
++    override HOSTCC = $(CC_FOR_BUILD)
++  endif
++endif
++ifneq ($(origin CCLD_FOR_BUILD),undefined)
++  ifeq ($(origin HOSTCCLD),file)
++    override HOSTCCLD = $(CCLD_FOR_BUILD)
++  endif
++endif
+ 
+ # vim:ft=make
+-- 
+2.24.1
+

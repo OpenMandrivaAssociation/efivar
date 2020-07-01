@@ -1,0 +1,28 @@
+From c98d11a74f29c91e850aeafd7e09a42b4d883704 Mon Sep 17 00:00:00 2001
+From: Chih-Wei Huang <cwhuang@linux.org.tw>
+Date: Wed, 22 Jan 2020 10:47:20 +0800
+Subject: [PATCH 65/86] Android: fix incorrect include path
+
+Fixes: 3ba12ff9 ("Move our infrastructure makefiles out of the topdir")
+
+Signed-off-by: Chih-Wei Huang <cwhuang@linux.org.tw>
+---
+ src/Android.mk | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Android.mk b/src/Android.mk
+index ea6ee3f9432..57ac2b55846 100644
+--- a/src/Android.mk
++++ b/src/Android.mk
+@@ -46,7 +46,7 @@ LIBEFIVAR_SOURCES := \
+ 	lib.c \
+ 	vars.c
+ 
+-include $(LOCAL_PATH)/../version.mk
++include $(LOCAL_PATH)/include/version.mk
+ 
+ LOCAL_SRC_FILES := $(LIBEFIBOOT_SOURCES) $(LIBEFIVAR_SOURCES)
+ LOCAL_CFLAGS := -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -std=gnu11 -DLIBEFIVAR_VERSION=$(VERSION)
+-- 
+2.24.1
+

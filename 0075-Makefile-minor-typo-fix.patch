@@ -1,0 +1,25 @@
+From 46c0623dad819a75ed479ac2576ce836a2dda2a6 Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Mon, 3 Feb 2020 11:30:33 -0500
+Subject: [PATCH 75/86] Makefile: minor typo fix.
+
+---
+ src/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Makefile b/src/Makefile
+index 144289d4709..0783cb3b55f 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -115,7 +115,7 @@ test : all
+ 
+ .PHONY: test deps abiclean abixml
+ .SECONDARY : libefivar.so.1.$(VERSION) libefivar.so.1
+-.SECONDARY : libefiboot.so.1.$(VERSION) libefivar.so.1
++.SECONDARY : libefiboot.so.1.$(VERSION) libefiboot.so.1
+ .SECONDARY : include/efivar/efivar-guids.h guid-symbols.c
+ .INTERMEDIATE : guids.bin names.bin
+ .PRECIOUS : guid-symbols.o makeguids
+-- 
+2.24.1
+

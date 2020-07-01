@@ -1,0 +1,187 @@
+From 3b4336d1f894ee0ee4180d6b50f4b7febbea3476 Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Tue, 18 Jun 2019 13:21:45 -0400
+Subject: [PATCH 38/86] Add some test cases for efivar export/import
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ Makefile              |   3 ++
+ tests/.gitignore      |   2 +
+ tests/Makefile        |  86 ++++++++++++++++++++++++++++++++++++++++++
+ tests/test.0.goal.var | Bin 0 -> 562 bytes
+ tests/test.1.goal.var | Bin 0 -> 574 bytes
+ tests/test.3.goal.var | Bin 0 -> 66 bytes
+ tests/test.4.goal.var | Bin 0 -> 365 bytes
+ 7 files changed, 91 insertions(+)
+ create mode 100644 tests/.gitignore
+ create mode 100644 tests/Makefile
+ create mode 100644 tests/test.0.goal.var
+ create mode 100644 tests/test.1.goal.var
+ create mode 100644 tests/test.3.goal.var
+ create mode 100644 tests/test.4.goal.var
+
+diff --git a/Makefile b/Makefile
+index 9c2620cb485..2d134ea9d6f 100644
+--- a/Makefile
++++ b/Makefile
+@@ -51,6 +51,9 @@ clean :
+ 	done
+ 	@rm -vf efivar.spec vgcore.* core.*
+ 
++test : all
++	@$(MAKE) -C tests
++
+ test-archive: abicheck efivar.spec
+ 	@rm -rf /tmp/efivar-$(GITTAG) /tmp/efivar-$(GITTAG)-tmp
+ 	@mkdir -p /tmp/efivar-$(GITTAG)-tmp
+diff --git a/tests/.gitignore b/tests/.gitignore
+new file mode 100644
+index 00000000000..a0149cf75de
+--- /dev/null
++++ b/tests/.gitignore
+@@ -0,0 +1,2 @@
++!*.var
++*.result.*
+diff --git a/tests/Makefile b/tests/Makefile
+new file mode 100644
+index 00000000000..5e0c604e355
+--- /dev/null
++++ b/tests/Makefile
+@@ -0,0 +1,86 @@
++#
++# Makefile
++# Peter Jones, 2019-06-18 11:10
++#
++
++all: clean test0 test1 test2 test3 test4
++
++GRUB_PREFIX ?= grub2
++TOPDIR ?= ..
++EFIVAR ?= ../src/efivar
++
++clean:
++	@rm -f *.result.env *.result.var
++
++test0:
++	@echo testing export to DMPSTORE format
++	@$(GRUB_PREFIX)-editenv test.0.result.env create
++	@$(GRUB_PREFIX)-editenv test.0.result.env set debug=all,-scripting,-lexer
++	@truncate -s 512 test.0.result.env
++	@LD_LIBRARY_PATH=$(TOPDIR)/src $(EFIVAR) -n {grub}-GRUB_ENV -f test.0.result.env -D -e test.0.result.var
++	@cmp test.0.result.var test.0.goal.var
++	@rm test.0.result.*
++	@echo passed
++
++test1:
++	@echo testing export to libefivar format
++	@$(GRUB_PREFIX)-editenv test.1.result.env create
++	@$(GRUB_PREFIX)-editenv test.1.result.env set debug=all,-scripting,-lexer
++	@truncate -s 512 test.1.result.env
++	@LD_LIBRARY_PATH=$(TOPDIR)/src $(EFIVAR) -n {grub}-GRUB_ENV -f test.1.result.env -e test.1.result.var
++	@cmp test.1.result.var test.1.goal.var
++	@rm test.1.result.*
++	@echo passed
++
++test2:
++	@$(GRUB_PREFIX)-editenv test.2.result.env create
++	@$(GRUB_PREFIX)-editenv test.2.result.env set debug=all,-scripting,-lexer
++	@truncate -s 512 test.2.result.env
++	@echo test importing from DMPSTORE and exporting to DMPSTORE and symbolic guid-name validation
++	@LD_LIBRARY_PATH=$(TOPDIR)/src $(EFIVAR) -n {grub}-GRUB_ENV -f test.2.result.env -D -e test.2.0.goal.var
++	@LD_LIBRARY_PATH=$(TOPDIR)/src $(EFIVAR) -i test.2.0.goal.var -e test.2.0.result.var -D
++	@cmp test.2.0.result.var test.2.0.result.var
++	@rm test.2.0.*
++	@echo passed
++	@echo test importing from DMPSTORE and exporting to libefivar
++	@LD_LIBRARY_PATH=$(TOPDIR)/src $(EFIVAR) -n {grub}-GRUB_ENV -f test.2.result.env -D -e test.2.1.goal.var
++	@LD_LIBRARY_PATH=$(TOPDIR)/src $(EFIVAR) -i test.2.1.goal.var -e test.2.1.result.var
++	@cmp test.2.1.result.var test.2.1.result.var
++	@rm test.2.1.*
++	@echo passed
++	@echo test importing from libefivar and exporting to DMPSTORE and mixed-case guid-name validation
++	@LD_LIBRARY_PATH=$(TOPDIR)/src $(EFIVAR) -n 91376aff-cBa6-42bE-949d-06fde81128e8-GRUB_ENV -f test.2.result.env -e test.2.2.goal.var
++	@LD_LIBRARY_PATH=$(TOPDIR)/src $(EFIVAR) -i test.2.2.goal.var -e test.2.2.result.var -D
++	@cmp test.2.2.result.var test.2.2.result.var
++	@rm test.2.2.*
++	@echo passed
++	@echo test importing from libefivar and exporting to libefivar and guid-name validation
++	@LD_LIBRARY_PATH=$(TOPDIR)/src $(EFIVAR) -n 91376aff-cba6-42be-949d-06fde81128e8-GRUB_ENV -f test.2.result.env -e test.2.3.goal.var
++	@LD_LIBRARY_PATH=$(TOPDIR)/src $(EFIVAR) -i test.2.3.goal.var -e test.2.3.result.var
++	@cmp test.2.3.result.var test.2.3.result.var
++	@rm test.2.3.* test.2.result.env
++	@echo passed
++	@echo testing efivar -L
++	@LD_LIBRARY_PATH=$(TOPDIR)/src $(EFIVAR) -L | \
++		grep -q '^{91376aff-cba6-42be-949d-06fde81128e8} {grub} efi_guid_grub GRUB$$'
++	@echo passed
++
++test3:
++	@echo testing with BootOrder variable dmpstore generated
++	@LD_LIBRARY_PATH=$(TOPDIR)/src $(EFIVAR) -i test.3.goal.var -e test.3.0.result.var
++	@LD_LIBRARY_PATH=$(TOPDIR)/src $(EFIVAR) -i test.3.0.result.var -e test.3.1.result.var -D
++	@cmp test.3.goal.var test.3.1.result.var
++	@rm test.3.0.result.var test.3.1.result.var
++	@echo passed
++
++test4:
++	@echo testing with ConIn variable dmpstore generated
++	@LD_LIBRARY_PATH=$(TOPDIR)/src $(EFIVAR) -i test.4.goal.var -e test.4.0.result.var
++	@LD_LIBRARY_PATH=$(TOPDIR)/src $(EFIVAR) -i test.4.0.result.var -e test.4.1.result.var -D
++	@cmp test.4.goal.var test.4.1.result.var
++	@rm test.4.0.result.var test.4.1.result.var
++	@echo passed
++
++.PHONY: all clean test0
++# vim:ft=make
++#
+diff --git a/tests/test.0.goal.var b/tests/test.0.goal.var
+new file mode 100644
+index 0000000000000000000000000000000000000000..a3bfb4db5ea49c8b26b0b9a0e118da4109969efb
+GIT binary patch
+literal 562
+zcmWe)00Jfk26u)ahEN74hIj^720w-{py2;3^NGt&?{k_mm+kKhL5&yeKrv+n_n=TG
+z1=qZ?%%c3f+|;}h1*e?+<ZP~#)TGjM+r*q49o^#OqRfJl%)E3R-JH~l)FLkBQ7~LW
+Jz?Da0CID%RU7r8|
+
+literal 0
+HcmV?d00001
+
+diff --git a/tests/test.1.goal.var b/tests/test.1.goal.var
+new file mode 100644
+index 0000000000000000000000000000000000000000..7f70c93317d996c429430ec434098c0417370970
+GIT binary patch
+literal 574
+zcmbO(djB&c0|Ns)5QD(~Ec1!WPVaM?GMDY|3qg$+LLfmV1_pPAAcjx|Cx&<iR|Y?Z
+zFrc8af_qS?lY(nrS!PjwUT$h$iGov3esVTfN@`MRx@}@kj*f0|a#3bMNoHQUj&4qB
+SMQRb3@+cTCAs{>T<#Pa%YGIxL
+
+literal 0
+HcmV?d00001
+
+diff --git a/tests/test.3.goal.var b/tests/test.3.goal.var
+new file mode 100644
+index 0000000000000000000000000000000000000000..972dd553e2043e782b096c9a8ad509c07b73782d
+GIT binary patch
+literal 66
+zcmWe(U|`?_Vkd@tAS_|<XDDJwVMqm%3=E0)pLCy^d`WN>FT;Zw%-TKdKru!JW+2JL
+Pz{0@Fz{b#`@+=nsxhf5!
+
+literal 0
+HcmV?d00001
+
+diff --git a/tests/test.4.goal.var b/tests/test.4.goal.var
+new file mode 100644
+index 0000000000000000000000000000000000000000..549ed5b717dd23843883d3d45f65f4dafeede870
+GIT binary patch
+literal 365
+zcmWe)U|_IjWMFV+$Y;o7@C0HPhE#?!plIU#C*7weUlLr!%kW?Zvvv;~P>hj9gu%OZ
+z#$~DL@y<Q#J=0$&6*)5V2?J$-U>bztU}R+G5@85-KlotZ&r5={co-(A+aL6;XJjEo
+zduqb6`;uEO3(nFdOFQ@Rb=42T%Y6FU_2+4DG&_@MdqeKT+KtgYu1oqK#orBlKZQi?
+e*A|Gbebas3YeDe^+2?h-9rgcN7(R2c?F0Zk6=943
+
+literal 0
+HcmV?d00001
+
+-- 
+2.24.1
+

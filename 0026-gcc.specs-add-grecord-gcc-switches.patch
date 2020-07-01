@@ -1,0 +1,30 @@
+From 4c419d91d9b81c6223a1d44b4ed759197fd2aab5 Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Mon, 17 Jun 2019 14:00:05 -0400
+Subject: [PATCH 26/86] gcc.specs: add -grecord-gcc-switches
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ gcc.specs | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/gcc.specs b/gcc.specs
+index 45d43d11294..d06a8e096fc 100644
+--- a/gcc.specs
++++ b/gcc.specs
+@@ -8,10 +8,10 @@
+ + %(efivar_cpp_options)
+ 
+ *cc1_options:
+-+ %(efivar_cpp_options) -Wmaybe-uninitialized -fno-merge-constants -fvisibility=hidden %{!r:%{!fpie:%{!fPIE:%{!fpic:%{!fPIC:%{!fno-pic:-fPIE}}}}}}
+++ %(efivar_cpp_options) -Wmaybe-uninitialized -fno-merge-constants -fvisibility=hidden %{!r:%{!fpie:%{!fPIE:%{!fpic:%{!fPIC:%{!fno-pic:-fPIE}}}}}} -grecord-gcc-switches
+ 
+ *self_spec:
+-+ %{!shared:%{!static:%{!r:-pie}}} %{static:-Wl,-no-fatal-warnings -Wl,-static -static -Wl,-z,relro,-z,now}
+++ %{!shared:%{!static:%{!r:-pie}}} %{static:-Wl,-no-fatal-warnings -Wl,-static -static -Wl,-z,relro,-z,now} -grecord-gcc-switches
+ 
+ *link:
+ + %{!static:--fatal-warnings} --no-undefined-version --no-allow-shlib-undefined --add-needed -z now --build-id %{!static:%{!shared:-pie}} %{shared:-z relro} %{static:%<pie}
+-- 
+2.24.1
+

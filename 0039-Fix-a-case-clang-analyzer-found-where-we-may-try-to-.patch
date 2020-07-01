@@ -1,0 +1,119 @@
+From 272b216e197b2b3d05da68ef51861545a36dc6d8 Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Tue, 18 Jun 2019 15:54:58 -0400
+Subject: [PATCH 39/86] Fix a case clang-analyzer found where we may try to
+ parse a NULL
+
+I don't think this is something that can *actually* happen - it didn't
+trigger before save_variable() was added, and the save_variable() path
+that calls this calls validate_name() immediately prior to this call.
+validate_name() calls exit() if it's NULL.  But that's weird as well,
+because that's the same pattern all the other users of parse_name() use.
+
+Anyway, this patch expands validate_name() and moves it into
+parse_name() so we don't need to call it from everywhere when we're just
+calling the two in a row anyway.
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ src/efivar.c | 45 ++++++++++++++++++++++++++++++---------------
+ 1 file changed, 30 insertions(+), 15 deletions(-)
+
+diff --git a/src/efivar.c b/src/efivar.c
+index 885a9af864b..8b1da8888f6 100644
+--- a/src/efivar.c
++++ b/src/efivar.c
+@@ -95,6 +95,34 @@ show_errors(void)
+ 	}
+ }
+ 
++static inline void
++validate_name(const char *name)
++{
++	if (name == NULL) {
++err:
++		warnx("Invalid variable name \"%s\"",
++		      (name == NULL) ? "(null)" : name);
++		show_errors();
++		exit(1);
++	}
++	if (name[0] == '{') {
++		const char *next = strchr(name+1, '}');
++		if (!next)
++			goto err;
++		if (next[1] != '-')
++			goto err;
++		if (next[2] == '\000')
++			goto err;
++	} else {
++		if (strlen(name) < 38)
++			goto err;
++		if (name[8] != '-' || name[13] != '-' ||
++		    name[18] != '-' || name[23] != '-' ||
++		    name[36] != '-')
++			goto err;
++	}
++}
++
+ static void
+ list_all_variables(void)
+ {
+@@ -124,6 +152,8 @@ parse_name(const char *guid_name, char **name, efi_guid_t *guid)
+ 
+ 	const char *left, *right;
+ 
++	validate_name(guid_name);
++
+ 	left = strchr(guid_name, '{');
+ 	right = strchr(guid_name, '}');
+ 	if (left && right) {
+@@ -408,16 +438,6 @@ edit_variable(const char *guid_name, void *data, size_t data_size,
+ 	}
+ }
+ 
+-static void
+-validate_name(const char *name)
+-{
+-	if (name == NULL) {
+-		fprintf(stderr, "Invalid variable name\n");
+-		show_errors();
+-		exit(1);
+-	}
+-}
+-
+ static void
+ prepare_data(const char *filename, uint8_t **data, size_t *data_size)
+ {
+@@ -588,21 +608,17 @@ int main(int argc, char *argv[])
+ 			list_all_variables();
+ 			break;
+ 		case ACTION_PRINT:
+-			validate_name(guid_name);
+ 			show_variable(guid_name, SHOW_VERBOSE);
+ 			break;
+ 		case ACTION_PRINT_DEC | ACTION_PRINT:
+-			validate_name(guid_name);
+ 			show_variable(guid_name, SHOW_DECIMAL);
+ 			break;
+ 		case ACTION_APPEND | ACTION_PRINT:
+-			validate_name(guid_name);
+ 			prepare_data(infile, &data, &data_size);
+ 			edit_variable(guid_name, data, data_size, attributes,
+ 				      EDIT_APPEND);
+ 			break;
+ 		case ACTION_WRITE | ACTION_PRINT:
+-			validate_name(guid_name);
+ 			prepare_data(infile, &data, &data_size);
+ 			edit_variable(guid_name, data, data_size, attributes,
+ 				      EDIT_WRITE);
+@@ -653,7 +669,6 @@ int main(int argc, char *argv[])
+ 
+ 				efi_variable_free(var, false);
+ 			} else {
+-				validate_name(guid_name);
+ 				save_variable(guid_name, outfile, dmpstore);
+ 			}
+ 			break;
+-- 
+2.24.1
+

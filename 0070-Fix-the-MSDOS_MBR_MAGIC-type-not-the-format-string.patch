@@ -1,0 +1,49 @@
+From db5e7f4244150b108970093fdc97072934e2bf2a Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Wed, 29 Jan 2020 13:15:51 -0500
+Subject: [PATCH 70/86] Fix the MSDOS_MBR_MAGIC type, not the format string.
+
+The value of MSDOS_MBR_MAGIC is 16 bits; make it evaluate that way,
+instead of promoting it to int for efi_error() formatting.
+
+Fixes: 3cf3b3d5cf3f6ff7ddb315676e338a0632aa6dc8
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ src/disk.c | 2 +-
+ src/gpt.h  | 6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/disk.c b/src/disk.c
+index 2eaf57436a2..3b5bf8330b1 100644
+--- a/src/disk.c
++++ b/src/disk.c
+@@ -55,7 +55,7 @@ is_mbr_valid(legacy_mbr *mbr)
+ 	ret = (mbr->magic == MSDOS_MBR_MAGIC);
+ 	if (!ret) {
+ 		errno = ENOTTY;
+-		efi_error("mbr magic is 0x%04hx not MSDOS_MBR_MAGIC (0x%04x)",
++		efi_error("mbr magic is 0x%04hx not MSDOS_MBR_MAGIC (0x%04hx)",
+ 			  mbr->magic, MSDOS_MBR_MAGIC);
+ 	}
+ 	return ret;
+diff --git a/src/gpt.h b/src/gpt.h
+index 66fbc21106c..45a048b21e1 100644
+--- a/src/gpt.h
++++ b/src/gpt.h
+@@ -27,9 +27,9 @@
+ 
+ #include <inttypes.h>
+ 
+-#define EFI_PMBR_OSTYPE_EFI 0xEF
+-#define EFI_PMBR_OSTYPE_EFI_GPT 0xEE
+-#define MSDOS_MBR_MAGIC 0xaa55
++#define EFI_PMBR_OSTYPE_EFI ((uint8_t)0xEF)
++#define EFI_PMBR_OSTYPE_EFI_GPT ((uint8_t)0xEE)
++#define MSDOS_MBR_MAGIC ((uint16_t)0xaa55)
+ #define GPT_BLOCK_SIZE 512
+ 
+ #define GPT_HEADER_MAGIC ((uint64_t)(0x5452415020494645ULL))
+-- 
+2.24.1
+

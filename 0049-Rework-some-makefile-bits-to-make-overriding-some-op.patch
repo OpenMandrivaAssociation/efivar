@@ -1,0 +1,299 @@
+From 998f617cec92d526e1fadb745673ceef63fa1483 Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Thu, 10 Oct 2019 15:45:10 -0400
+Subject: [PATCH 49/86] Rework some makefile bits to make overriding some
+ options simpler.
+
+This reworks a lot of defaults.mk to make some variables more regularly
+partially overridden on the command line, making e.g. suppression of
+-Werror easier when warranted.  It also makes having per-compiler
+versions of each thing simpler.
+
+The following variables can be overridden, though in some cases only
+partially:
+
+name			kind of things in it
+COMPILER		gcc
+CROSS_COMPILE		arm-linux-gnu-
+CC			$(CROSS_COMPILE)$(COMPILER)
+DEBUGINFO		-g
+OPTIMIZE		-O2 -flto
+WARNINGS		-Wfoo -Wno-bar
+ERRORS			-Werror -Wno-error=cpp
+CPPFLAGS		-D and -I
+CFLAGS			$(OPTIMIZE) $(DEBUGINFO) $(WARNINGS) $(ERRORS)
+LDFLAGS			linker options (add-only)
+CCLDFLAGS		-Wl, prefixed linker options (add-only and it's
+			normally machine generated from LDFLAGS
+HOSTCC			$(COMPILER)
+HOST_CPPFLAGS		$(CPPFLAGS) (add-only)
+HOST_CFLAGS		$(CFLAGS) (add-only)
+HOST_CCLDFLAGS		$(CCLDFLAGS) (add-only)
+
+This resolves issue #31
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ src/Makefile            |  5 ++-
+ src/include/defaults.mk | 83 +++++++++++++++++++++++++++--------------
+ src/include/gcc.specs   | 11 +-----
+ src/include/rules.mk    | 51 +++++++++++++------------
+ src/test/Makefile       |  2 +-
+ 5 files changed, 87 insertions(+), 65 deletions(-)
+
+diff --git a/src/Makefile b/src/Makefile
+index e5f10d4c7bf..1d0e217c89b 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -51,10 +51,11 @@ include/efivar/efivar-guids.h : makeguids guids.txt
+ 	./makeguids guids.txt guids.bin names.bin \
+ 		guid-symbols.c include/efivar/efivar-guids.h
+ 
+-makeguids : CPPFLAGS+=-DEFIVAR_BUILD_ENVIRONMENT -march=native
++makeguids : CPPFLAGS=$(HOST_CPPFLAGS)
+ makeguids : LIBS=dl
++makeguids : CCLD=$(HOSTCCLD)
++makeguids : CFLAGS=$(HOST_CFLAGS)
+ makeguids : $(MAKEGUIDS_SOURCES)
+-makeguids : CCLD=$(CCLD_FOR_BUILD)
+ 
+ guids.o : guids.S | guids.bin names.bin
+ 
+diff --git a/src/include/defaults.mk b/src/include/defaults.mk
+index 7290187ceba..df738feddea 100644
+--- a/src/include/defaults.mk
++++ b/src/include/defaults.mk
+@@ -8,19 +8,63 @@ BINDIR	?= $(EXEC_PREFIX)/bin
+ PCDIR	?= $(LIBDIR)/pkgconfig
+ DESTDIR	?=
+ 
+-INSTALL ?= install
+ CROSS_COMPILE	?=
+ COMPILER ?= gcc
+-PKG_CONFIG = $(shell if [ -e "$$(env $(CROSS_COMPILE)pkg-config 2>&1)" ]; then echo $(CROSS_COMPILE)pkg-config ; else echo pkg-config ; fi)
+-CC_FOR_BUILD	?= cc
+-CC	:= $(if $(filter default,$(origin CC)),$(CROSS_COMPILE)$(COMPILER),$(CC))
+-CCLD_FOR_BUILD	?= $(CC_FOR_BUILD)
+-CCLD	:= $(if $(filter undefined,$(origin CCLD)),$(CC),$(CCLD))
++$(call set-if-undefined,CC,$(CROSS_COMPILE)$(COMPILER))
++$(call set-if-undefined,CCLD,$(CC))
++$(call set-if-undefined,HOSTCC,$(COMPILER))
++$(call set-if-undefined,HOSTCCLD,$(HOSTCC))
++
+ OPTIMIZE ?= -O2 -flto
+-CFLAGS	?= $(OPTIMIZE) -g3
+-CFLAGS	:= $(CFLAGS)
++DEBUGINFO ?= -g3
++WARNINGS_GCC ?= -Wmaybe-uninitialized \
++		-Wno-nonnull-compare
++WARNINGS_CCC_ANALYZER ?= $(WARNINGS_GCC)
++WARNINGS ?= -Wall -Wextra \
++	    -Wno-address-of-packed-member \
++	    $(call family,WARNINGS)
++ERRORS ?= -Werror -Wno-error=cpp $(call family,ERRORS)
++CPPFLAGS ?=
++override _CPPFLAGS := $(CPPFLAGS)
++override CPPFLAGS = $(_CPPFLAGS) -DLIBEFIVAR_VERSION=$(VERSION) \
++	    -D_GNU_SOURCE \
++	    -I$(TOPDIR)/src/include/
++CFLAGS ?= $(OPTIMIZE) $(DEBUGINFO) $(WARNINGS) $(ERRORS)
++CFLAGS_GCC ?= -specs=$(TOPDIR)/src/include/gcc.specs \
++	      -fno-merge-constants
++override _CFLAGS := $(CFLAGS)
++override CFLAGS = $(_CFLAGS) \
++		  -std=gnu11 \
++		  -funsigned-char \
++		  -fvisibility=hidden \
++		  $(call family,CFLAGS) \
++		  $(call pkg-config-cflags)
++LDFLAGS_CLANG ?= --fatal-warnings -pie -z relro
+ LDFLAGS ?=
+-LDFLAGS := $(LDFLAGS)
++override _LDFLAGS := $(LDFLAGS)
++override LDFLAGS = $(_LDFLAGS) \
++		   --add-needed \
++		   --build-id \
++		   --no-allow-shlib-undefined \
++		   --no-undefined-version \
++		   -z now \
++		   -z muldefs \
++		   $(call family,LDFLAGS)
++CCLDFLAGS ?=
++override _CCLDFLAGS := $(CCLDFLAGS)
++override CCLDFLAGS = $(CFLAGS) -L. $(_CCLDFLAGS) \
++		     $(call add-prefix,-Wl,$(LDFLAGS)) \
++		     $(call pkg-config-ccldflags)
++HOST_CPPFLAGS ?= $(CPPFLAGS)
++override _HOST_CPPFLAGS := $(HOST_CPPFLAGS)
++override HOST_CPPFLAGS = $(_HOST_CPPFLAGS) \
++			 -DEFIVAR_BUILD_ENVIRONMENT -march=native
++HOST_CFLAGS ?= $(CFLAGS)
++override _HOST_CFLAGS := $(HOST_CFLAGS)
++override HOST_CFLAGS = $(_HOST_CFLAGS)
++
++PKG_CONFIG = $(shell if [ -e "$$(env $(CROSS_COMPILE)pkg-config 2>&1)" ]; then echo $(CROSS_COMPILE)pkg-config ; else echo pkg-config ; fi)
++INSTALL ?= install
+ AR	:= $(CROSS_COMPILE)$(COMPILER)-ar
+ NM	:= $(CROSS_COMPILE)$(COMPILER)-nm
+ RANLIB	:= $(CROSS_COMPILE)$(COMPILER)-ranlib
+@@ -29,26 +73,7 @@ ABIDIFF := abidiff
+ 
+ PKGS	=
+ 
+-CPPFLAGS += -DLIBEFIVAR_VERSION=$(VERSION)
+-
+-clang_cflags = -D_GNU_SOURCE -std=gnu11 -Wno-address-of-packed-member \
+-	       -funsigned-char -Wall -Wno-nonnull-compare \
+-	       -Werror -Wno-error=cpp
+-gcc_cflags = -specs=$(TOPDIR)/src/include/gcc.specs
+-cflags	= $(CFLAGS) -I${TOPDIR}/src/include/ \
+-	$(if $(findstring clang,$(CC)),$(clang_cflags),) \
+-	$(if $(findstring ccc-analyzer,$(CC)),$(clang_cflags),) \
+-	$(if $(findstring gcc,$(CC)),$(gcc_cflags),) \
+-	$(call pkg-config-cflags)
+-clang_ccldflags =
+-gcc_ccldflags =
+-ccldflags = $(cflags) -L. $(CCLDFLAGS) $(LDFLAGS) \
+-	-Wl,-z,muldefs \
+-	$(if $(findstring clang,$(CCLD)),$(clang_ccldflags),) \
+-	$(if $(findstring ccc-analyzer,$(CCLD)),$(clang_ccldflags),) \
+-	$(if $(findstring gcc,$(CCLD)),$(gcc_ccldflags),) \
+-	$(call pkg-config-ldflags)
+-SOFLAGS=-shared
++SOFLAGS=-shared $(call family,SOFLAGS)
+ LDLIBS=$(foreach lib,$(LIBS),-l$(lib)) $(call pkg-config-ldlibs)
+ 
+ COMMIT_ID=$(shell git log -1 --pretty=%H 2>/dev/null || echo master)
+diff --git a/src/include/gcc.specs b/src/include/gcc.specs
+index 9d2b145ee6e..ef28e2bb51a 100644
+--- a/src/include/gcc.specs
++++ b/src/include/gcc.specs
+@@ -1,14 +1,5 @@
+-*cpp:
+-+ -D_GNU_SOURCE
+-
+-*efivar_cpp_options:
+- -Wall -Wno-nonnull-compare -Werror -Wno-error=cpp -std=gnu11 -Wextra -funsigned-char
+-
+-*cpp_options:
+-+ %(efivar_cpp_options)
+-
+ *cc1_options:
+-+ %(efivar_cpp_options) -Wmaybe-uninitialized -fno-merge-constants -funsigned-char -fvisibility=hidden %{!r:%{!fpie:%{!fPIE:%{!fpic:%{!fPIC:%{!fno-pic:-fPIE}}}}}} -grecord-gcc-switches
+++ %{!r:%{!fpie:%{!fPIE:%{!fpic:%{!fPIC:%{!fno-pic:-fPIE}}}}}} -grecord-gcc-switches
+ 
+ *self_spec:
+ + %{!shared:%{!static:%{!r:-pie}}} %{static:-Wl,-no-fatal-warnings -Wl,-static -static -Wl,-z,relro,-z,now} -grecord-gcc-switches
+diff --git a/src/include/rules.mk b/src/include/rules.mk
+index 1783dda573b..ff0ff4ef61b 100644
+--- a/src/include/rules.mk
++++ b/src/include/rules.mk
+@@ -4,20 +4,32 @@ default : all
+ 
+ include $(TOPDIR)/src/include/version.mk
+ 
++comma:= ,
++empty:=
++space:= $(empty) $(empty)
++
++set-if-undefined = $(call eval,$(1) := $(if $(filter default undefined,$(origin $(1))),$(2),$($(1))))
++add-prefix = $(subst $(space),$(empty),$(1)$(foreach x,$(2),$(comma)$(x)))
++
++FAMILY_SUFFIXES = $(if $(findstring clang,$(CC)),CLANG,) \
++		  $(if $(findstring ccc-analyzer,$(CC)),CCC_ANALYZER,) \
++		  $(if $(findstring gcc,$(CC)),GCC,)
++family = $(foreach FAMILY_SUFFIX,$(FAMILY_SUFFIXES),$($(1)_$(FAMILY_SUFFIX)))
++
+ %.a :
+ 	$(AR) -cvqs $@ $^
+ 
+ % : %.c
+ 
+ % : %.c
+-	$(CCLD) $(ccldflags) $(CPPFLAGS) -o $@ $^ $(LDLIBS)
++	$(CCLD) $(CCLDFLAGS) $(CPPFLAGS) -o $@ $^ $(LDLIBS)
+ 
+-%-static : ccldflags+=-static
++%-static : CCLDFLAGS+=-static
+ %-static : %.c
+-	$(CCLD) $(ccldflags) $(CPPFLAGS) -o $@ $^ $(LDLIBS)
++	$(CCLD) $(CCLDFLAGS) $(CPPFLAGS) -o $@ $^ $(LDLIBS)
+ 
+ %.so :
+-	$(CCLD) $(ccldflags) $(CPPFLAGS) $(SOFLAGS) \
++	$(CCLD) $(CCLDFLAGS) $(CPPFLAGS) $(SOFLAGS) \
+ 	  -Wl,-soname,$@.1 \
+ 	  -Wl,--version-script=$(MAP) \
+ 	  -o $@ $^ $(LDLIBS)
+@@ -35,22 +47,22 @@ include $(TOPDIR)/src/include/version.mk
+ 		$<
+ 
+ %.o : %.c
+-	$(CC) $(cflags) -fPIC $(CPPFLAGS) -c -o $@ $(filter %.c %.o %.S,$^)
++	$(CC) $(CFLAGS) -fPIC $(CPPFLAGS) -c -o $@ $(filter %.c %.o %.S,$^)
+ 
+ %.static.o : %.c
+-	$(CC) $(cflags) -fPIE $(CPPFLAGS) -c -o $@ $(filter %.c %.o %.S,$^)
++	$(CC) $(CFLAGS) -fPIE $(CPPFLAGS) -c -o $@ $(filter %.c %.o %.S,$^)
+ 
+ %.o : %.S
+-	$(CC) $(cflags) -fPIC $(CPPFLAGS) -c -o $@ $(filter %.c %.o %.S,$^)
++	$(CC) $(CFLAGS) -fPIC $(CPPFLAGS) -c -o $@ $(filter %.c %.o %.S,$^)
+ 
+ %.static.o : %.S
+-	$(CC) $(cflags) -fPIE $(CPPFLAGS) -c -o $@ $(filter %.c %.o %.S,$^)
++	$(CC) $(CFLAGS) -fPIE $(CPPFLAGS) -c -o $@ $(filter %.c %.o %.S,$^)
+ 
+ %.S: %.c
+-	$(CC) $(cflags) $(CPPFLAGS) -S $< -o $@
++	$(CC) $(CFLAGS) $(CPPFLAGS) -S $< -o $@
+ 
+ %.E: %.c
+-	$(CC) $(cflags) $(CPPFLAGS) -E $< -o $@
++	$(CC) $(CFLAGS) $(CPPFLAGS) -E $< -o $@
+ 
+ %.c : %.h
+ 
+@@ -71,20 +83,13 @@ endef
+ %.map : %.map.in
+ 	@$(call substitute-version,$<,$@)
+ 
+-pkg-config-cflags = \
+-	$(shell if [ -n "$(PKGS)" ]; then $(PKG_CONFIG) --cflags $(PKGS); fi)
+-pkg-config-ldflags = \
+-	$(shell if [ -n "$(PKGS)" ]; then $(PKG_CONFIG) --libs-only-L --libs-only-other $(PKGS) ; fi)
+-pkg-config-ldlibs = \
+-	$(shell if [ -n "$(PKGS)" ]; then $(PKG_CONFIG) --libs-only-l $(PKGS) ; fi)
++pkg-config-cflags = $(if $(PKGS),$(shell $(PKG_CONFIG) --cflags $(PKGS)))
++pkg-config-ccldflags = $(if $(PKGS),$(shell $(PKG_CONFIG) --libs-only-L --libs-only-other $(PKGS)))
++pkg-config-ldlibs = $(if $(PKGS),$(shell $(PKG_CONFIG) --libs-only-l $(PKGS)))
+ 
+-define deps-of
+-	$(foreach src,$(filter %.c,$(1)),$(patsubst %.c,.%.d,$(src))) \
+-	$(foreach src,$(filter %.S,$(1)),$(patsubst %.S,.%.d,$(src)))
+-endef
++deps-of = $(foreach src,$(filter %.c,$(1)),$(patsubst %.c,.%.d,$(src))) \
++	  $(foreach src,$(filter %.S,$(1)),$(patsubst %.S,.%.d,$(src)))
+ 
+-define get-config
+-$(shell git config --local --get "efivar.$(1)")
+-endef
++get-config = $(shell git config --local --get "efivar.$(1)")
+ 
+ # vim:ft=make
+diff --git a/src/test/Makefile b/src/test/Makefile
+index df16c7a5f3b..7a2aa496b48 100644
+--- a/src/test/Makefile
++++ b/src/test/Makefile
+@@ -3,7 +3,7 @@ SRCDIR = $(realpath .)
+ include $(TOPDIR)/src/include/defaults.mk
+ include $(TOPDIR)/src/include/version.mk
+ 
+-ccldflags += -L$(TOPDIR)/src/ -Wl,-rpath=$(TOPDIR)/src/
++CCLDFLAGS += -L$(TOPDIR)/src/ -Wl,-rpath=$(TOPDIR)/src/
+ LIBS=efivar
+ 
+ all : tester
+-- 
+2.24.1
+

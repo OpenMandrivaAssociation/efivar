@@ -1,0 +1,72 @@
+From ca85d518ab6063ff07af41672dcb366610f51a20 Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Tue, 15 Oct 2019 16:58:19 -0400
+Subject: [PATCH 59/86] Put some EFI device paths into the debug log
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ src/linux.c | 41 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
+
+diff --git a/src/linux.c b/src/linux.c
+index 67fbb1be059..6b88bfb7e9b 100644
+--- a/src/linux.c
++++ b/src/linux.c
+@@ -336,6 +336,44 @@ device_free(struct device *dev)
+ 	free(dev);
+ }
+ 
++static void
++print_dev_dp_node(struct device *dev, struct dev_probe *probe)
++{
++	ssize_t dpsz;
++	uint8_t *dp;
++	ssize_t bufsz;
++	uint8_t *buf;
++
++	dpsz = probe->create(dev, NULL, 0, 0);
++	if (dpsz <= 0)
++		return;
++
++	dp = alloca(dpsz + 4);
++	if (!dp)
++		return;
++
++	dpsz = probe->create(dev, dp, dpsz, 0);
++	if (dpsz <= 0)
++		return;
++
++	efidp_make_end_entire(dp + dpsz, 4);
++	bufsz = efidp_format_device_path(NULL, 0,
++					 (const_efidp)dp, dpsz + 4);
++	if (bufsz <= 0)
++		return;
++
++	buf = alloca(bufsz);
++	if (!buf)
++		return;
++
++	bufsz = efidp_format_device_path(buf, bufsz,
++			(const_efidp)dp, dpsz + 4);
++	if (bufsz <= 0)
++		return;
++
++	debug("Device path node is %s", buf);
++}
++
+ struct device HIDDEN
+ *device_get(int fd, int partition)
+ {
+@@ -512,6 +550,9 @@ struct device HIDDEN
+ 	                    probe->flags & DEV_ABBREV_ONLY)
+ 	                        needs_root = false;
+ 
++			if (probe->create)
++				print_dev_dp_node(dev, probe);
++
+ 	                dev->probes[n++] = dev_probes[i];
+ 	                current += pos;
+ 			if (current[0] == '\0')
+-- 
+2.24.1
+

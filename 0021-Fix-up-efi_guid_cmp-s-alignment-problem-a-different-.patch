@@ -1,0 +1,70 @@
+From 8a003f0c495da3719338881286bc2976b2d086aa Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Wed, 29 May 2019 10:11:24 -0400
+Subject: [PATCH 21/86] Fix up efi_guid_cmp()'s alignment problem a different
+ way
+
+With the prior fix for efi_guid_cmp()'s alignment issue, abicheck shows:
+
+1 function with some indirect sub-type change:
+
+  [C]'function int efi_guid_cmp(void* const, void* const)' at <built-in>:34:1 has some indirect sub-type changes:
+    parameter 1 of type 'void* const' changed:
+      entity changed from 'void* const' to 'const efi_guid_t*'
+      type size hasn't changed
+    parameter 2 of type 'void* const' changed:
+      entity changed from 'void* const' to 'const efi_guid_t*'
+      type size hasn't changed
+
+While this isn't a meaningful ABI difference in terms of linking, it is
+definitely worse than having the type actually specified.
+
+This patch changes the type back to the previous type, but also changes
+the typedef to require a 1-byte alignment.  This will guarantee that all
+new builds of efi_guid_cmp() and related code have code generated in a
+way that's compatible with any alignment, thus alleviating the issue.
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ src/guid.c                  | 2 +-
+ src/include/efivar/efivar.h | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/guid.c b/src/guid.c
+index 3156b3b7c60..306c9ff8287 100644
+--- a/src/guid.c
++++ b/src/guid.c
+@@ -31,7 +31,7 @@
+ extern const efi_guid_t efi_guid_zero;
+ 
+ int NONNULL(1, 2) PUBLIC
+-efi_guid_cmp(const void * const a, const void * const b)
++efi_guid_cmp(const efi_guid_t *a, const efi_guid_t *b)
+ {
+ 	return memcmp(a, b, sizeof (efi_guid_t));
+ }
+diff --git a/src/include/efivar/efivar.h b/src/include/efivar/efivar.h
+index ff95cb10791..11d9a9d7b78 100644
+--- a/src/include/efivar/efivar.h
++++ b/src/include/efivar/efivar.h
+@@ -37,7 +37,7 @@ typedef struct {
+ 	uint16_t	c;
+ 	uint16_t	d;
+ 	uint8_t		e[6];
+-} efi_guid_t;
++} efi_guid_t __attribute__((__aligned__(1)));
+ 
+ typedef struct {
+ 	uint8_t		addr[4];
+@@ -128,7 +128,7 @@ extern int efi_symbol_to_guid(const char *symbol, efi_guid_t *guid)
+ 
+ extern int efi_guid_is_zero(const efi_guid_t *guid);
+ extern int efi_guid_is_empty(const efi_guid_t *guid);
+-extern int efi_guid_cmp(const void * const a, const void * const b);
++extern int efi_guid_cmp(const efi_guid_t *a, const efi_guid_t *b);
+ 
+ /* import / export functions */
+ typedef struct efi_variable efi_variable_t;
+-- 
+2.24.1
+

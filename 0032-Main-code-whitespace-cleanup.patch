@@ -1,0 +1,5136 @@
+From b049a3267bdddde8c75e5451d6af38c3421a55a6 Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Mon, 17 Jun 2019 14:42:46 -0400
+Subject: [PATCH 32/86] Main code whitespace cleanup.
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ src/crc32.c           |  207 +++++----
+ src/creator.c         |   22 +-
+ src/disk.c            |   24 +-
+ src/dp-acpi.c         |    2 +
+ src/dp-hw.c           |    2 +
+ src/dp-media.c        |    2 +
+ src/dp-message.c      |    2 +
+ src/dp.c              |    5 +-
+ src/efivar.c          |   14 +-
+ src/efivarfs.c        |   19 +-
+ src/export.c          |    2 +
+ src/gpt.c             |    2 +
+ src/guid.c            |    6 +-
+ src/lib.c             |   16 +-
+ src/linux-acpi-root.c |  280 ++++++------
+ src/linux-acpi.c      |  150 +++---
+ src/linux-ata.c       |  202 ++++----
+ src/linux-emmc.c      |  102 +++--
+ src/linux-i2o.c       |   42 +-
+ src/linux-md.c        |   66 +--
+ src/linux-nvme.c      |  171 +++----
+ src/linux-pci-root.c  |  128 +++---
+ src/linux-pci.c       |  194 ++++----
+ src/linux-pmem.c      |  200 ++++----
+ src/linux-sas.c       |  314 ++++++-------
+ src/linux-sata.c      |  340 +++++++-------
+ src/linux-scsi.c      |  492 ++++++++++----------
+ src/linux-soc-root.c  |   30 +-
+ src/linux-virtblk.c   |   39 +-
+ src/linux.c           | 1016 ++++++++++++++++++++---------------------
+ src/loadopt.c         |    2 +
+ src/makeguids.c       |    2 +
+ src/path-helpers.c    |  222 ++++-----
+ src/vars.c            |    2 +
+ 34 files changed, 2192 insertions(+), 2127 deletions(-)
+
+diff --git a/src/crc32.c b/src/crc32.c
+index e9086b10e2c..533d2c0f551 100644
+--- a/src/crc32.c
++++ b/src/crc32.c
+@@ -1,4 +1,4 @@
+-/* 
++/*
+  * Dec 5, 2000 Matt Domsch <Matt_Domsch@dell.com>
+  * - Copied crc32.c from the linux/drivers/net/cipe directory.
+  * - Now pass seed as an arg
+@@ -7,118 +7,117 @@
+  * - License remains unchanged!  It's still GPL-compatable!
+  */
+ 
+-  /* ============================================================= */
+-  /*  COPYRIGHT (C) 1986 Gary S. Brown.  You may use this program, or       */
+-  /*  code or tables extracted from it, as desired without restriction.     */
+-  /*                                                                        */
+-  /*  First, the polynomial itself and its table of feedback terms.  The    */
+-  /*  polynomial is                                                         */
+-  /*  X^32+X^26+X^23+X^22+X^16+X^12+X^11+X^10+X^8+X^7+X^5+X^4+X^2+X^1+X^0   */
+-  /*                                                                        */
+-  /*  Note that we take it "backwards" and put the highest-order term in    */
+-  /*  the lowest-order bit.  The X^32 term is "implied"; the LSB is the     */
+-  /*  X^31 term, etc.  The X^0 term (usually shown as "+1") results in      */
+-  /*  the MSB being 1.                                                      */
+-  /*                                                                        */
+-  /*  Note that the usual hardware shift register implementation, which     */
+-  /*  is what we're using (we're merely optimizing it by doing eight-bit    */
+-  /*  chunks at a time) shifts bits into the lowest-order term.  In our     */
+-  /*  implementation, that means shifting towards the right.  Why do we     */
+-  /*  do it this way?  Because the calculated CRC must be transmitted in    */
+-  /*  order from highest-order term to lowest-order term.  UARTs transmit   */
+-  /*  characters in order from LSB to MSB.  By storing the CRC this way,    */
+-  /*  we hand it to the UART in the order low-byte to high-byte; the UART   */
+-  /*  sends each low-bit to hight-bit; and the result is transmission bit   */
+-  /*  by bit from highest- to lowest-order term without requiring any bit   */
+-  /*  shuffling on our part.  Reception works similarly.                    */
+-  /*                                                                        */
+-  /*  The feedback terms table consists of 256, 32-bit entries.  Notes:     */
+-  /*                                                                        */
+-  /*      The table can be generated at runtime if desired; code to do so   */
+-  /*      is shown later.  It might not be obvious, but the feedback        */
+-  /*      terms simply represent the results of eight shift/xor opera-      */
+-  /*      tions for all combinations of data and CRC register values.       */
+-  /*                                                                        */
+-  /*      The values must be right-shifted by eight bits by the "updcrc"    */
+-  /*      logic; the shift must be unsigned (bring in zeroes).  On some     */
+-  /*      hardware you could probably optimize the shift in assembler by    */
+-  /*      using byte-swap instructions.                                     */
+-  /*      polynomial $edb88320                                              */
+-  /*                                                                        */
+-  /*  --------------------------------------------------------------------  */
++/* ============================================================= */
++/*  COPYRIGHT (C) 1986 Gary S. Brown.  You may use this program, or       */
++/*  code or tables extracted from it, as desired without restriction.     */
++/*                                                                        */
++/*  First, the polynomial itself and its table of feedback terms.  The    */
++/*  polynomial is                                                         */
++/*  X^32+X^26+X^23+X^22+X^16+X^12+X^11+X^10+X^8+X^7+X^5+X^4+X^2+X^1+X^0   */
++/*                                                                        */
++/*  Note that we take it "backwards" and put the highest-order term in    */
++/*  the lowest-order bit.  The X^32 term is "implied"; the LSB is the     */
++/*  X^31 term, etc.  The X^0 term (usually shown as "+1") results in      */
++/*  the MSB being 1.                                                      */
++/*                                                                        */
++/*  Note that the usual hardware shift register implementation, which     */
++/*  is what we're using (we're merely optimizing it by doing eight-bit    */
++/*  chunks at a time) shifts bits into the lowest-order term.  In our     */
++/*  implementation, that means shifting towards the right.  Why do we     */
++/*  do it this way?  Because the calculated CRC must be transmitted in    */
++/*  order from highest-order term to lowest-order term.  UARTs transmit   */
++/*  characters in order from LSB to MSB.  By storing the CRC this way,    */
++/*  we hand it to the UART in the order low-byte to high-byte; the UART   */
++/*  sends each low-bit to hight-bit; and the result is transmission bit   */
++/*  by bit from highest- to lowest-order term without requiring any bit   */
++/*  shuffling on our part.  Reception works similarly.                    */
++/*                                                                        */
++/*  The feedback terms table consists of 256, 32-bit entries.  Notes:     */
++/*                                                                        */
++/*      The table can be generated at runtime if desired; code to do so   */
++/*      is shown later.  It might not be obvious, but the feedback        */
++/*      terms simply represent the results of eight shift/xor opera-      */
++/*      tions for all combinations of data and CRC register values.       */
++/*                                                                        */
++/*      The values must be right-shifted by eight bits by the "updcrc"    */
++/*      logic; the shift must be unsigned (bring in zeroes).  On some     */
++/*      hardware you could probably optimize the shift in assembler by    */
++/*      using byte-swap instructions.                                     */
++/*      polynomial $edb88320                                              */
++/*                                                                        */
++/*  --------------------------------------------------------------------  */
+ 
+ #include <stdint.h>
+ 
+ static uint32_t crc32_tab[] = {
+-      0x00000000L, 0x77073096L, 0xee0e612cL, 0x990951baL, 0x076dc419L,
+-      0x706af48fL, 0xe963a535L, 0x9e6495a3L, 0x0edb8832L, 0x79dcb8a4L,
+-      0xe0d5e91eL, 0x97d2d988L, 0x09b64c2bL, 0x7eb17cbdL, 0xe7b82d07L,
+-      0x90bf1d91L, 0x1db71064L, 0x6ab020f2L, 0xf3b97148L, 0x84be41deL,
+-      0x1adad47dL, 0x6ddde4ebL, 0xf4d4b551L, 0x83d385c7L, 0x136c9856L,
+-      0x646ba8c0L, 0xfd62f97aL, 0x8a65c9ecL, 0x14015c4fL, 0x63066cd9L,
+-      0xfa0f3d63L, 0x8d080df5L, 0x3b6e20c8L, 0x4c69105eL, 0xd56041e4L,
+-      0xa2677172L, 0x3c03e4d1L, 0x4b04d447L, 0xd20d85fdL, 0xa50ab56bL,
+-      0x35b5a8faL, 0x42b2986cL, 0xdbbbc9d6L, 0xacbcf940L, 0x32d86ce3L,
+-      0x45df5c75L, 0xdcd60dcfL, 0xabd13d59L, 0x26d930acL, 0x51de003aL,
+-      0xc8d75180L, 0xbfd06116L, 0x21b4f4b5L, 0x56b3c423L, 0xcfba9599L,
+-      0xb8bda50fL, 0x2802b89eL, 0x5f058808L, 0xc60cd9b2L, 0xb10be924L,
+-      0x2f6f7c87L, 0x58684c11L, 0xc1611dabL, 0xb6662d3dL, 0x76dc4190L,
+-      0x01db7106L, 0x98d220bcL, 0xefd5102aL, 0x71b18589L, 0x06b6b51fL,
+-      0x9fbfe4a5L, 0xe8b8d433L, 0x7807c9a2L, 0x0f00f934L, 0x9609a88eL,
+-      0xe10e9818L, 0x7f6a0dbbL, 0x086d3d2dL, 0x91646c97L, 0xe6635c01L,
+-      0x6b6b51f4L, 0x1c6c6162L, 0x856530d8L, 0xf262004eL, 0x6c0695edL,
+-      0x1b01a57bL, 0x8208f4c1L, 0xf50fc457L, 0x65b0d9c6L, 0x12b7e950L,
+-      0x8bbeb8eaL, 0xfcb9887cL, 0x62dd1ddfL, 0x15da2d49L, 0x8cd37cf3L,
+-      0xfbd44c65L, 0x4db26158L, 0x3ab551ceL, 0xa3bc0074L, 0xd4bb30e2L,
+-      0x4adfa541L, 0x3dd895d7L, 0xa4d1c46dL, 0xd3d6f4fbL, 0x4369e96aL,
+-      0x346ed9fcL, 0xad678846L, 0xda60b8d0L, 0x44042d73L, 0x33031de5L,
+-      0xaa0a4c5fL, 0xdd0d7cc9L, 0x5005713cL, 0x270241aaL, 0xbe0b1010L,
+-      0xc90c2086L, 0x5768b525L, 0x206f85b3L, 0xb966d409L, 0xce61e49fL,
+-      0x5edef90eL, 0x29d9c998L, 0xb0d09822L, 0xc7d7a8b4L, 0x59b33d17L,
+-      0x2eb40d81L, 0xb7bd5c3bL, 0xc0ba6cadL, 0xedb88320L, 0x9abfb3b6L,
+-      0x03b6e20cL, 0x74b1d29aL, 0xead54739L, 0x9dd277afL, 0x04db2615L,
+-      0x73dc1683L, 0xe3630b12L, 0x94643b84L, 0x0d6d6a3eL, 0x7a6a5aa8L,
+-      0xe40ecf0bL, 0x9309ff9dL, 0x0a00ae27L, 0x7d079eb1L, 0xf00f9344L,
+-      0x8708a3d2L, 0x1e01f268L, 0x6906c2feL, 0xf762575dL, 0x806567cbL,
+-      0x196c3671L, 0x6e6b06e7L, 0xfed41b76L, 0x89d32be0L, 0x10da7a5aL,
+-      0x67dd4accL, 0xf9b9df6fL, 0x8ebeeff9L, 0x17b7be43L, 0x60b08ed5L,
+-      0xd6d6a3e8L, 0xa1d1937eL, 0x38d8c2c4L, 0x4fdff252L, 0xd1bb67f1L,
+-      0xa6bc5767L, 0x3fb506ddL, 0x48b2364bL, 0xd80d2bdaL, 0xaf0a1b4cL,
+-      0x36034af6L, 0x41047a60L, 0xdf60efc3L, 0xa867df55L, 0x316e8eefL,
+-      0x4669be79L, 0xcb61b38cL, 0xbc66831aL, 0x256fd2a0L, 0x5268e236L,
+-      0xcc0c7795L, 0xbb0b4703L, 0x220216b9L, 0x5505262fL, 0xc5ba3bbeL,
+-      0xb2bd0b28L, 0x2bb45a92L, 0x5cb36a04L, 0xc2d7ffa7L, 0xb5d0cf31L,
+-      0x2cd99e8bL, 0x5bdeae1dL, 0x9b64c2b0L, 0xec63f226L, 0x756aa39cL,
+-      0x026d930aL, 0x9c0906a9L, 0xeb0e363fL, 0x72076785L, 0x05005713L,
+-      0x95bf4a82L, 0xe2b87a14L, 0x7bb12baeL, 0x0cb61b38L, 0x92d28e9bL,
+-      0xe5d5be0dL, 0x7cdcefb7L, 0x0bdbdf21L, 0x86d3d2d4L, 0xf1d4e242L,
+-      0x68ddb3f8L, 0x1fda836eL, 0x81be16cdL, 0xf6b9265bL, 0x6fb077e1L,
+-      0x18b74777L, 0x88085ae6L, 0xff0f6a70L, 0x66063bcaL, 0x11010b5cL,
+-      0x8f659effL, 0xf862ae69L, 0x616bffd3L, 0x166ccf45L, 0xa00ae278L,
+-      0xd70dd2eeL, 0x4e048354L, 0x3903b3c2L, 0xa7672661L, 0xd06016f7L,
+-      0x4969474dL, 0x3e6e77dbL, 0xaed16a4aL, 0xd9d65adcL, 0x40df0b66L,
+-      0x37d83bf0L, 0xa9bcae53L, 0xdebb9ec5L, 0x47b2cf7fL, 0x30b5ffe9L,
+-      0xbdbdf21cL, 0xcabac28aL, 0x53b39330L, 0x24b4a3a6L, 0xbad03605L,
+-      0xcdd70693L, 0x54de5729L, 0x23d967bfL, 0xb3667a2eL, 0xc4614ab8L,
+-      0x5d681b02L, 0x2a6f2b94L, 0xb40bbe37L, 0xc30c8ea1L, 0x5a05df1bL,
+-      0x2d02ef8dL
+-   };
++	0x00000000L, 0x77073096L, 0xee0e612cL, 0x990951baL, 0x076dc419L,
++	0x706af48fL, 0xe963a535L, 0x9e6495a3L, 0x0edb8832L, 0x79dcb8a4L,
++	0xe0d5e91eL, 0x97d2d988L, 0x09b64c2bL, 0x7eb17cbdL, 0xe7b82d07L,
++	0x90bf1d91L, 0x1db71064L, 0x6ab020f2L, 0xf3b97148L, 0x84be41deL,
++	0x1adad47dL, 0x6ddde4ebL, 0xf4d4b551L, 0x83d385c7L, 0x136c9856L,
++	0x646ba8c0L, 0xfd62f97aL, 0x8a65c9ecL, 0x14015c4fL, 0x63066cd9L,
++	0xfa0f3d63L, 0x8d080df5L, 0x3b6e20c8L, 0x4c69105eL, 0xd56041e4L,
++	0xa2677172L, 0x3c03e4d1L, 0x4b04d447L, 0xd20d85fdL, 0xa50ab56bL,
++	0x35b5a8faL, 0x42b2986cL, 0xdbbbc9d6L, 0xacbcf940L, 0x32d86ce3L,
++	0x45df5c75L, 0xdcd60dcfL, 0xabd13d59L, 0x26d930acL, 0x51de003aL,
++	0xc8d75180L, 0xbfd06116L, 0x21b4f4b5L, 0x56b3c423L, 0xcfba9599L,
++	0xb8bda50fL, 0x2802b89eL, 0x5f058808L, 0xc60cd9b2L, 0xb10be924L,
++	0x2f6f7c87L, 0x58684c11L, 0xc1611dabL, 0xb6662d3dL, 0x76dc4190L,
++	0x01db7106L, 0x98d220bcL, 0xefd5102aL, 0x71b18589L, 0x06b6b51fL,
++	0x9fbfe4a5L, 0xe8b8d433L, 0x7807c9a2L, 0x0f00f934L, 0x9609a88eL,
++	0xe10e9818L, 0x7f6a0dbbL, 0x086d3d2dL, 0x91646c97L, 0xe6635c01L,
++	0x6b6b51f4L, 0x1c6c6162L, 0x856530d8L, 0xf262004eL, 0x6c0695edL,
++	0x1b01a57bL, 0x8208f4c1L, 0xf50fc457L, 0x65b0d9c6L, 0x12b7e950L,
++	0x8bbeb8eaL, 0xfcb9887cL, 0x62dd1ddfL, 0x15da2d49L, 0x8cd37cf3L,
++	0xfbd44c65L, 0x4db26158L, 0x3ab551ceL, 0xa3bc0074L, 0xd4bb30e2L,
++	0x4adfa541L, 0x3dd895d7L, 0xa4d1c46dL, 0xd3d6f4fbL, 0x4369e96aL,
++	0x346ed9fcL, 0xad678846L, 0xda60b8d0L, 0x44042d73L, 0x33031de5L,
++	0xaa0a4c5fL, 0xdd0d7cc9L, 0x5005713cL, 0x270241aaL, 0xbe0b1010L,
++	0xc90c2086L, 0x5768b525L, 0x206f85b3L, 0xb966d409L, 0xce61e49fL,
++	0x5edef90eL, 0x29d9c998L, 0xb0d09822L, 0xc7d7a8b4L, 0x59b33d17L,
++	0x2eb40d81L, 0xb7bd5c3bL, 0xc0ba6cadL, 0xedb88320L, 0x9abfb3b6L,
++	0x03b6e20cL, 0x74b1d29aL, 0xead54739L, 0x9dd277afL, 0x04db2615L,
++	0x73dc1683L, 0xe3630b12L, 0x94643b84L, 0x0d6d6a3eL, 0x7a6a5aa8L,
++	0xe40ecf0bL, 0x9309ff9dL, 0x0a00ae27L, 0x7d079eb1L, 0xf00f9344L,
++	0x8708a3d2L, 0x1e01f268L, 0x6906c2feL, 0xf762575dL, 0x806567cbL,
++	0x196c3671L, 0x6e6b06e7L, 0xfed41b76L, 0x89d32be0L, 0x10da7a5aL,
++	0x67dd4accL, 0xf9b9df6fL, 0x8ebeeff9L, 0x17b7be43L, 0x60b08ed5L,
++	0xd6d6a3e8L, 0xa1d1937eL, 0x38d8c2c4L, 0x4fdff252L, 0xd1bb67f1L,
++	0xa6bc5767L, 0x3fb506ddL, 0x48b2364bL, 0xd80d2bdaL, 0xaf0a1b4cL,
++	0x36034af6L, 0x41047a60L, 0xdf60efc3L, 0xa867df55L, 0x316e8eefL,
++	0x4669be79L, 0xcb61b38cL, 0xbc66831aL, 0x256fd2a0L, 0x5268e236L,
++	0xcc0c7795L, 0xbb0b4703L, 0x220216b9L, 0x5505262fL, 0xc5ba3bbeL,
++	0xb2bd0b28L, 0x2bb45a92L, 0x5cb36a04L, 0xc2d7ffa7L, 0xb5d0cf31L,
++	0x2cd99e8bL, 0x5bdeae1dL, 0x9b64c2b0L, 0xec63f226L, 0x756aa39cL,
++	0x026d930aL, 0x9c0906a9L, 0xeb0e363fL, 0x72076785L, 0x05005713L,
++	0x95bf4a82L, 0xe2b87a14L, 0x7bb12baeL, 0x0cb61b38L, 0x92d28e9bL,
++	0xe5d5be0dL, 0x7cdcefb7L, 0x0bdbdf21L, 0x86d3d2d4L, 0xf1d4e242L,
++	0x68ddb3f8L, 0x1fda836eL, 0x81be16cdL, 0xf6b9265bL, 0x6fb077e1L,
++	0x18b74777L, 0x88085ae6L, 0xff0f6a70L, 0x66063bcaL, 0x11010b5cL,
++	0x8f659effL, 0xf862ae69L, 0x616bffd3L, 0x166ccf45L, 0xa00ae278L,
++	0xd70dd2eeL, 0x4e048354L, 0x3903b3c2L, 0xa7672661L, 0xd06016f7L,
++	0x4969474dL, 0x3e6e77dbL, 0xaed16a4aL, 0xd9d65adcL, 0x40df0b66L,
++	0x37d83bf0L, 0xa9bcae53L, 0xdebb9ec5L, 0x47b2cf7fL, 0x30b5ffe9L,
++	0xbdbdf21cL, 0xcabac28aL, 0x53b39330L, 0x24b4a3a6L, 0xbad03605L,
++	0xcdd70693L, 0x54de5729L, 0x23d967bfL, 0xb3667a2eL, 0xc4614ab8L,
++	0x5d681b02L, 0x2a6f2b94L, 0xb40bbe37L, 0xc30c8ea1L, 0x5a05df1bL,
++	0x2d02ef8dL
++};
+ 
+ /* Return a 32-bit CRC of the contents of the buffer. */
+ 
+ uint32_t
+ crc32(const void *buf, unsigned long len, uint32_t seed)
+ {
+-  unsigned long i;
+-  register uint32_t crc32val;
+-  const unsigned char *s = buf;
++	unsigned long i;
++	register uint32_t val;
++	const unsigned char *s = buf;
+ 
+-  crc32val = seed;
+-  for (i = 0;  i < len;  i ++)
+-    {
+-      crc32val =
+-	crc32_tab[(crc32val ^ s[i]) & 0xff] ^
+-	  (crc32val >> 8);
+-    }
+-  return crc32val;
++	val = seed;
++	for (i = 0;  i < len;  i ++)
++		val = crc32_tab[(val ^ s[i]) & 0xff] ^ (val >> 8);
++
++	return val;
+ }
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/creator.c b/src/creator.c
+index f4bb01bc4a6..8a2f8e79aca 100644
+--- a/src/creator.c
++++ b/src/creator.c
+@@ -243,13 +243,13 @@ efi_va_generate_file_device_path_from_esp(uint8_t *buf, ssize_t size,
+ 		va_end(aq);
+ 	}
+ 
+-        if (!(options & (EFIBOOT_ABBREV_FILE|EFIBOOT_ABBREV_HD)) &&
+-            (dev->flags & DEV_ABBREV_ONLY)) {
+-                efi_error_clear();
+-                errno = EINVAL;
+-                efi_error("Device must use File() or HD() device path");
+-                goto err;
+-        }
++	if (!(options & (EFIBOOT_ABBREV_FILE|EFIBOOT_ABBREV_HD))
++	    && (dev->flags & DEV_ABBREV_ONLY)) {
++		efi_error_clear();
++		errno = EINVAL;
++		efi_error("Device must use File() or HD() device path");
++		goto err;
++	}
+ 
+ 	if ((options & EFIBOOT_ABBREV_EDD10)
+ 			&& (!(options & EFIBOOT_ABBREV_FILE)
+@@ -290,7 +290,7 @@ efi_va_generate_file_device_path_from_esp(uint8_t *buf, ssize_t size,
+ 		}
+ 
+ 		sz = make_hd_dn(buf+off, size?size-off:0,
+-                                disk_fd, dev->part, options);
++				disk_fd, dev->part, options);
+ 		saved_errno = errno;
+ 		close(disk_fd);
+ 		errno = saved_errno;
+@@ -404,7 +404,7 @@ efi_generate_file_device_path(uint8_t *buf, ssize_t size,
+ 		efi_error("could not find parent device for file");
+ 		goto err;
+ 	}
+-        debug("child_devpath:%s", child_devpath);
++	debug("child_devpath:%s", child_devpath);
+ 
+ 	debug("parent_devpath:%s", parent_devpath);
+ 	debug("child_devpath:%s", child_devpath);
+@@ -515,5 +515,7 @@ efi_generate_ipv4_device_path(uint8_t *buf, ssize_t size,
+ uint32_t PUBLIC
+ efi_get_libefiboot_version(void)
+ {
+-        return LIBEFIVAR_VERSION;
++	return LIBEFIVAR_VERSION;
+ }
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/disk.c b/src/disk.c
+index 519c2a19325..3b5bf8330b1 100644
+--- a/src/disk.c
++++ b/src/disk.c
+@@ -79,11 +79,11 @@ msdos_disk_get_extended_partition_info (int fd UNUSED,
+ 					uint64_t *start UNUSED,
+ 					uint64_t *size UNUSED)
+ {
+-        /* Until I can handle these... */
+-        //fprintf(stderr, "Extended partition info not supported.\n");
++	/* Until I can handle these... */
++	//fprintf(stderr, "Extended partition info not supported.\n");
+ 	errno = ENOSYS;
+ 	efi_error("extended partition info is not supported");
+-        return -1;
++	return -1;
+ }
+ 
+ /************************************************************
+@@ -162,23 +162,23 @@ msdos_disk_get_partition_info (int fd, int write_signature,
+ 	}
+ 	*(uint32_t *)signature = mbr->unique_mbr_signature;
+ 
+-        if (num > 4) {
++	if (num > 4) {
+ 		/* Extended partition */
+-                rc = msdos_disk_get_extended_partition_info(fd, mbr, num,
++		rc = msdos_disk_get_extended_partition_info(fd, mbr, num,
+ 							    start, size);
+ 		if (rc < 0) {
+ 			efi_error("could not get extended partition info");
+ 			return rc;
+ 		}
+-        } else if (num == 0) {
++	} else if (num == 0) {
+ 		/* Whole disk */
+-                *start = 0;
++		*start = 0;
+ 		ioctl(fd, BLKGETSIZE, &disk_size);
+-                *size = disk_size;
++		*size = disk_size;
+ 	} else if (num >= 1 && num <= 4) {
+ 		/* Primary partition */
+-                *start = mbr->partition[num-1].starting_lba;
+-                *size  = mbr->partition[num-1].size_in_lba;
++		*start = mbr->partition[num-1].starting_lba;
++		*size  = mbr->partition[num-1].size_in_lba;
+ 	}
+ 	return 0;
+ }
+@@ -259,7 +259,7 @@ is_partitioned(int fd)
+ 
+ ssize_t HIDDEN
+ make_hd_dn(uint8_t *buf, ssize_t size, int fd, int32_t partition,
+-           uint32_t options)
++	   uint32_t options)
+ {
+ 	uint64_t part_start=0, part_size = 0;
+ 	uint8_t signature[16]="", format=0, signature_type=0;
+@@ -284,3 +284,5 @@ make_hd_dn(uint8_t *buf, ssize_t size, int fd, int32_t partition,
+ 		efi_error("could not make HD DP node");
+ 	return rc;
+ }
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/dp-acpi.c b/src/dp-acpi.c
+index 3a80ba9e006..2525fdfd073 100644
+--- a/src/dp-acpi.c
++++ b/src/dp-acpi.c
+@@ -333,3 +333,5 @@ efidp_make_acpi_hid_ex(uint8_t *buf, ssize_t size,
+ 
+ 	return sz;
+ }
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/dp-hw.c b/src/dp-hw.c
+index 0dcf991d5c3..1fe0f66e871 100644
+--- a/src/dp-hw.c
++++ b/src/dp-hw.c
+@@ -120,3 +120,5 @@ efidp_make_edd10(uint8_t *buf, ssize_t size, uint32_t hardware_device)
+ 
+ 	return sz;
+ }
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/dp-media.c b/src/dp-media.c
+index be691c44326..4728c326100 100644
+--- a/src/dp-media.c
++++ b/src/dp-media.c
+@@ -207,3 +207,5 @@ efidp_make_hd(uint8_t *buf, ssize_t size, uint32_t num, uint64_t part_start,
+ 
+ 	return sz;
+ }
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/dp-message.c b/src/dp-message.c
+index 55fa7810439..b88f17fb712 100644
+--- a/src/dp-message.c
++++ b/src/dp-message.c
+@@ -846,3 +846,5 @@ efidp_make_emmc(uint8_t *buf, ssize_t size, uint32_t slot_id)
+ 
+ 	return sz;
+ }
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/dp.c b/src/dp.c
+index 82d60b4f9be..b6eea74878c 100644
+--- a/src/dp.c
++++ b/src/dp.c
+@@ -402,8 +402,7 @@ efidp_format_device_path(char *buf, size_t size, const_efidp dp, ssize_t limit)
+ }
+ 
+ ssize_t PUBLIC
+-efidp_parse_device_node(char *path UNUSED, efidp out UNUSED,
+-                        size_t size UNUSED)
++efidp_parse_device_node(char *path UNUSED, efidp out UNUSED, size_t size UNUSED)
+ {
+ 	efi_error("not implented");
+ 	errno = -ENOSYS;
+@@ -462,3 +461,5 @@ efidp_make_generic(uint8_t *buf, ssize_t size, uint8_t type, uint8_t subtype,
+ 	head->length = total_size;
+ 	return head->length;
+ }
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/efivar.c b/src/efivar.c
+index 228bdb745a7..df075809db5 100644
+--- a/src/efivar.c
++++ b/src/efivar.c
+@@ -281,7 +281,7 @@ edit_variable(const char *guid_name, void *data, size_t data_size,
+ 	}
+ 
+ 	rc = efi_get_variable(guid, name, &old_data, &old_data_size,
+-				&old_attributes);
++			      &old_attributes);
+ 	if (rc < 0 && edit_type != EDIT_WRITE) {
+ 		fprintf(stderr, "efivar: %m\n");
+ 		show_errors();
+@@ -293,12 +293,14 @@ edit_variable(const char *guid_name, void *data, size_t data_size,
+ 
+ 	switch (edit_type){
+ 		case EDIT_APPEND:
+-			rc = efi_append_variable(guid, name, data, data_size,
+-					old_attributes);
++			rc = efi_append_variable(guid, name,
++						 data, data_size,
++						 old_attributes);
+ 			break;
+ 		case EDIT_WRITE:
+-			rc = efi_set_variable(guid, name, data, data_size,
+-					old_attributes, 0644);
++			rc = efi_set_variable(guid, name,
++					      data, data_size,
++					      old_attributes, 0644);
+ 			break;
+ 	}
+ 
+@@ -509,3 +511,5 @@ int main(int argc, char *argv[])
+ 
+ 	return 0;
+ }
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/efivarfs.c b/src/efivarfs.c
+index f47524a75c4..ec2585a6648 100644
+--- a/src/efivarfs.c
++++ b/src/efivarfs.c
+@@ -130,14 +130,19 @@ efivarfs_make_fd_mutable(int fd, unsigned long *orig_attrs)
+ {
+ 	unsigned long mutable_attrs = 0;
+ 
+-        *orig_attrs = 0;
++	*orig_attrs = 0;
++
+ 	if (ioctl(fd, FS_IOC_GETFLAGS, orig_attrs) == -1)
+ 		return -1;
++
+ 	if ((*orig_attrs & FS_IMMUTABLE_FL) == 0)
+ 		return 0;
+-        mutable_attrs = *orig_attrs & ~(unsigned long)FS_IMMUTABLE_FL;
++
++	mutable_attrs = *orig_attrs & ~(unsigned long)FS_IMMUTABLE_FL;
++
+ 	if (ioctl(fd, FS_IOC_SETFLAGS, &mutable_attrs) == -1)
+ 		return -1;
++
+ 	return 0;
+ }
+ 
+@@ -448,10 +453,10 @@ err:
+ 
+ 	ioctl(restore_immutable_fd, FS_IOC_SETFLAGS, &orig_attrs);
+ 
+-        if (wfd >= 0)
+-                close(wfd);
+-        if (rfd >= 0)
+-                close(rfd);
++	if (wfd >= 0)
++		close(wfd);
++	if (rfd >= 0)
++		close(rfd);
+ 
+ 	free(buf);
+ 	free(path);
+@@ -513,3 +518,5 @@ struct efi_var_operations efivarfs_ops = {
+ 	.get_next_variable_name = efivarfs_get_next_variable_name,
+ 	.chmod_variable = efivarfs_chmod_variable,
+ };
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/export.c b/src/export.c
+index 8321bd3f8ba..5b11ae883cf 100644
+--- a/src/export.c
++++ b/src/export.c
+@@ -335,3 +335,5 @@ efi_variable_realize(efi_variable_t *var)
+ 	return efi_set_variable(*var->guid, var->name, var->data,
+ 				var->data_size, attrs, 0600);
+ }
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/gpt.c b/src/gpt.c
+index 7bdb8ad1575..aa4055b9812 100644
+--- a/src/gpt.c
++++ b/src/gpt.c
+@@ -781,3 +781,5 @@ gpt_disk_get_partition_info(int fd, uint32_t num, uint64_t * start,
+  * tab-width: 8
+  * End:
+  */
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/guid.c b/src/guid.c
+index 306c9ff8287..34efb132d51 100644
+--- a/src/guid.c
++++ b/src/guid.c
+@@ -44,7 +44,7 @@ efi_guid_is_zero(const efi_guid_t *guid)
+ 
+ int
+ efi_guid_is_empty(const efi_guid_t *guid)
+-        NONNULL(1) PUBLIC ALIAS(efi_guid_is_zero);
++	NONNULL(1) PUBLIC ALIAS(efi_guid_is_zero);
+ 
+ int NONNULL(1, 2) PUBLIC
+ efi_str_to_guid(const char *s, efi_guid_t *guid)
+@@ -286,4 +286,6 @@ efi_name_to_guid(const char *name, efi_guid_t *guid)
+ 
+ int
+ efi_id_guid_to_guid(const char *name, efi_guid_t *guid)
+-        NONNULL(1, 2) PUBLIC ALIAS(efi_name_to_guid);
++	NONNULL(1, 2) PUBLIC ALIAS(efi_name_to_guid);
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/lib.c b/src/lib.c
+index 457a8604d5d..b2eea6c2569 100644
+--- a/src/lib.c
++++ b/src/lib.c
+@@ -83,7 +83,7 @@ VERSION(_efi_set_variable_mode,efi_set_variable@@LIBEFIVAR_0.24);
+ int NONNULL(2, 3) PUBLIC
+ efi_set_variable(efi_guid_t guid, const char *name, uint8_t *data,
+ 		 size_t data_size, uint32_t attributes, mode_t mode)
+-        ALIAS(_efi_set_variable_mode);
++	ALIAS(_efi_set_variable_mode);
+ 
+ int NONNULL(2, 3) PUBLIC
+ efi_append_variable(efi_guid_t guid, const char *name, uint8_t *data,
+@@ -238,12 +238,12 @@ libefivar_init(void)
+ 		NULL
+ 	};
+ 	char *ops_name = getenv("LIBEFIVAR_OPS");
+-        if (ops_name && strcasestr(ops_name, "help")) {
+-                printf("LIBEFIVAR_OPS operations available:\n");
+-                for (int i = 0; ops_list[i] != NULL; i++)
+-                        printf("\t%s\n", ops_list[i]->name);
+-                exit(0);
+-        }
++	if (ops_name && strcasestr(ops_name, "help")) {
++		printf("LIBEFIVAR_OPS operations available:\n");
++		for (int i = 0; ops_list[i] != NULL; i++)
++			printf("\t%s\n", ops_list[i]->name);
++		exit(0);
++	}
+ 
+ 	for (int i = 0; ops_list[i] != NULL; i++)
+ 	{
+@@ -271,3 +271,5 @@ efi_get_libefivar_version(void)
+ {
+ 	return LIBEFIVAR_VERSION;
+ }
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/linux-acpi-root.c b/src/linux-acpi-root.c
+index b237039685e..f48d4be9ac6 100644
+--- a/src/linux-acpi-root.c
++++ b/src/linux-acpi-root.c
+@@ -33,159 +33,161 @@
+  *
+  * various devices /sys/dev/block/$major:$minor start with:
+  * maj:min -> ../../devices/ACPI0000:00/$PCI_DEVICES/$BLOCKDEV_STUFF/block/$DISK/$PART
+- * i.e.:                    APMC0D0D:00/ata1/host0/target0:0:0/0:0:0:0/block/sda
+- *                          ^ root hub ^blockdev stuff
++ * i.e.:		    APMC0D0D:00/ata1/host0/target0:0:0/0:0:0:0/block/sda
++ *			    ^ root hub ^blockdev stuff
+  * or:
+  * maj:min -> ../../devices/ACPI0000:00/$PCI_DEVICES/$BLOCKDEV_STUFF/block/$DISK/$PART
+- * i.e.:                    APMC0D0D:00/0000:00:1d.0/0000:05:00.0/ata1/host0/target0:0:0/0:0:0:0/block/sda
+- *                          ^ root hub ^pci dev      ^pci dev     ^ blockdev stuff
++ * i.e.:		    APMC0D0D:00/0000:00:1d.0/0000:05:00.0/ata1/host0/target0:0:0/0:0:0:0/block/sda
++ *			    ^ root hub ^pci dev      ^pci dev     ^ blockdev stuff
+  */
+ static ssize_t
+ parse_acpi_root(struct device *dev, const char *current, const char *root UNUSED)
+ {
+-        int rc;
+-        int pos = 0;
+-        uint16_t pad0;
+-        uint8_t pad1;
+-        char *acpi_header = NULL;
+-        char *colon;
+-
+-        const char *devpart = current;
+-
+-        debug("entry");
+-
+-        /*
+-         * find the ACPI root dunno0 and dunno1; they basically look like:
+-         * ABCD0000:00/
+-         *     ^d0  ^d1
+-         * This is annoying because "/%04ms%h:%hhx/" won't bind from the right
+-         * side in sscanf.
+-         */
+-        rc = sscanf(devpart, "../../devices/platform/%n", &pos);
+-        debug("devpart:\"%s\" rc:%d pos:%d", devpart, rc, pos);
+-        if (rc != 0 || pos < 1)
+-                return 0;
+-        devpart += pos;
+-
+-        /*
+-         * If it's too short to be A0000:00, it's not an ACPI string
+-         */
+-        if (strlen(devpart) < 8)
+-                return 0;
+-
+-        colon = strchr(devpart, ':');
+-        if (!colon)
+-                return 0;
+-        pos = colon - devpart;
+-
+-        /*
+-         * If colon doesn't point at something between one of these:
+-         * A0000:00 ACPI0000:00
+-         *      ^ 5         ^ 8
+-         * Then it's not an ACPI string.
+-         */
+-        if (pos < 5 || pos > 8)
+-                return 0;
+-
+-        dev->acpi_root.acpi_hid_str = strndup(devpart, pos + 1);
+-        if (!dev->acpi_root.acpi_hid_str) {
+-                efi_error("Could not allocate memory");
+-                return -1;
+-        }
+-        dev->acpi_root.acpi_hid_str[pos] = 0;
+-        debug("acpi_hid_str:\"%s\"", dev->acpi_root.acpi_hid_str);
+-
+-        pos -= 4;
+-        debug("devpart:\"%s\" rc:%d pos:%d", devpart, rc, pos);
+-        acpi_header = strndupa(devpart, pos);
+-        if (!acpi_header)
+-                return 0;
+-        acpi_header[pos] = 0;
+-        debug("devpart:\"%s\" acpi_header:\"%s\"", devpart, acpi_header);
+-        devpart += pos;
+-
+-        /*
+-         * If we can't find these numbers, it's not an ACPI string
+-         */
+-        rc = sscanf(devpart, "%hx:%hhx/%n", &pad0, &pad1, &pos);
+-        if (rc != 2) {
+-                efi_error("Could not parse ACPI path \"%s\"", devpart);
+-                return 0;
+-        }
+-        debug("devpart:\"%s\" parsed:%04hx:%02hhx pos:%d rc:%d",
+-              devpart, pad0, pad1, pos, rc);
+-
+-        devpart += pos;
+-
+-        rc = parse_acpi_hid_uid(dev, "devices/platform/%s%04hX:%02hhX",
+-                                acpi_header, pad0, pad1);
+-        debug("rc:%d acpi_header:%s pad0:%04hX pad1:%02hhX",
+-              rc, acpi_header, pad0, pad1);
+-        if (rc < 0 && errno == ENOENT) {
+-                rc = parse_acpi_hid_uid(dev, "devices/platform/%s%04hx:%02hhx",
+-                                acpi_header, pad0, pad1);
+-                debug("rc:%d acpi_header:%s pad0:%04hx pad1:%02hhx",
+-                      rc, acpi_header, pad0, pad1);
+-        }
+-        if (rc < 0) {
+-                efi_error("Could not parse hid/uid");
+-                return rc;
+-        }
+-        debug("Parsed HID:0x%08x UID:0x%"PRIx64" uidstr:\"%s\" path:\"%s\"",
+-              dev->acpi_root.acpi_hid, dev->acpi_root.acpi_uid,
+-              dev->acpi_root.acpi_uid_str,
+-              dev->acpi_root.acpi_cid_str);
+-
+-        return devpart - current;
++	int rc;
++	int pos = 0;
++	uint16_t pad0;
++	uint8_t pad1;
++	char *acpi_header = NULL;
++	char *colon;
++
++	const char *devpart = current;
++
++	debug("entry");
++
++	/*
++	 * find the ACPI root dunno0 and dunno1; they basically look like:
++	 * ABCD0000:00/
++	 *     ^d0  ^d1
++	 * This is annoying because "/%04ms%h:%hhx/" won't bind from the right
++	 * side in sscanf.
++	 */
++	rc = sscanf(devpart, "../../devices/platform/%n", &pos);
++	debug("devpart:\"%s\" rc:%d pos:%d", devpart, rc, pos);
++	if (rc != 0 || pos < 1)
++		return 0;
++	devpart += pos;
++
++	/*
++	 * If it's too short to be A0000:00, it's not an ACPI string
++	 */
++	if (strlen(devpart) < 8)
++		return 0;
++
++	colon = strchr(devpart, ':');
++	if (!colon)
++		return 0;
++	pos = colon - devpart;
++
++	/*
++	 * If colon doesn't point at something between one of these:
++	 * A0000:00 ACPI0000:00
++	 *	^ 5	    ^ 8
++	 * Then it's not an ACPI string.
++	 */
++	if (pos < 5 || pos > 8)
++		return 0;
++
++	dev->acpi_root.acpi_hid_str = strndup(devpart, pos + 1);
++	if (!dev->acpi_root.acpi_hid_str) {
++		efi_error("Could not allocate memory");
++		return -1;
++	}
++	dev->acpi_root.acpi_hid_str[pos] = 0;
++	debug("acpi_hid_str:\"%s\"", dev->acpi_root.acpi_hid_str);
++
++	pos -= 4;
++	debug("devpart:\"%s\" rc:%d pos:%d", devpart, rc, pos);
++	acpi_header = strndupa(devpart, pos);
++	if (!acpi_header)
++		return 0;
++	acpi_header[pos] = 0;
++	debug("devpart:\"%s\" acpi_header:\"%s\"", devpart, acpi_header);
++	devpart += pos;
++
++	/*
++	 * If we can't find these numbers, it's not an ACPI string
++	 */
++	rc = sscanf(devpart, "%hx:%hhx/%n", &pad0, &pad1, &pos);
++	if (rc != 2) {
++		efi_error("Could not parse ACPI path \"%s\"", devpart);
++		return 0;
++	}
++	debug("devpart:\"%s\" parsed:%04hx:%02hhx pos:%d rc:%d",
++	      devpart, pad0, pad1, pos, rc);
++
++	devpart += pos;
++
++	rc = parse_acpi_hid_uid(dev, "devices/platform/%s%04hX:%02hhX",
++				acpi_header, pad0, pad1);
++	debug("rc:%d acpi_header:%s pad0:%04hX pad1:%02hhX",
++	      rc, acpi_header, pad0, pad1);
++	if (rc < 0 && errno == ENOENT) {
++		rc = parse_acpi_hid_uid(dev, "devices/platform/%s%04hx:%02hhx",
++				acpi_header, pad0, pad1);
++		debug("rc:%d acpi_header:%s pad0:%04hx pad1:%02hhx",
++		      rc, acpi_header, pad0, pad1);
++	}
++	if (rc < 0) {
++		efi_error("Could not parse hid/uid");
++		return rc;
++	}
++	debug("Parsed HID:0x%08x UID:0x%"PRIx64" uidstr:\"%s\" path:\"%s\"",
++	      dev->acpi_root.acpi_hid, dev->acpi_root.acpi_uid,
++	      dev->acpi_root.acpi_uid_str,
++	      dev->acpi_root.acpi_cid_str);
++
++	return devpart - current;
+ }
+ 
+ static ssize_t
+ dp_create_acpi_root(struct device *dev,
+-                    uint8_t *buf, ssize_t size, ssize_t off)
++		    uint8_t *buf, ssize_t size, ssize_t off)
+ {
+-        ssize_t sz = 0, new = 0;
+-
+-        debug("entry buf:%p size:%zd off:%zd", buf, size, off);
+-
+-        if (dev->acpi_root.acpi_uid_str || dev->acpi_root.acpi_cid_str) {
+-                debug("creating acpi_hid_ex dp hid:0x%08x uid:0x%"PRIx64" uidstr:\"%s\" cidstr:\"%s\"",
+-                      dev->acpi_root.acpi_hid, dev->acpi_root.acpi_uid,
+-                      dev->acpi_root.acpi_uid_str, dev->acpi_root.acpi_cid_str);
+-                new = efidp_make_acpi_hid_ex(buf + off, size ? size - off : 0,
+-                                            dev->acpi_root.acpi_hid,
+-                                            dev->acpi_root.acpi_uid,
+-                                            dev->acpi_root.acpi_cid,
+-                                            dev->acpi_root.acpi_hid_str,
+-                                            dev->acpi_root.acpi_uid_str,
+-                                            dev->acpi_root.acpi_cid_str);
+-                if (new < 0) {
+-                        efi_error("efidp_make_acpi_hid_ex() failed");
+-                        return new;
+-                }
+-        } else {
+-                debug("creating acpi_hid dp hid:0x%08x uid:0x%0"PRIx64,
+-                      dev->acpi_root.acpi_hid,
+-                      dev->acpi_root.acpi_uid);
+-                new = efidp_make_acpi_hid(buf + off, size ? size - off : 0,
+-                                         dev->acpi_root.acpi_hid,
+-                                         dev->acpi_root.acpi_uid);
+-                if (new < 0) {
+-                        efi_error("efidp_make_acpi_hid() failed");
+-                        return new;
+-                }
+-        }
+-        sz += new;
+-
+-        debug("returning %zd", sz);
+-        return sz;
++	ssize_t sz = 0, new = 0;
++
++	debug("entry buf:%p size:%zd off:%zd", buf, size, off);
++
++	if (dev->acpi_root.acpi_uid_str || dev->acpi_root.acpi_cid_str) {
++		debug("creating acpi_hid_ex dp hid:0x%08x uid:0x%"PRIx64" uidstr:\"%s\" cidstr:\"%s\"",
++		      dev->acpi_root.acpi_hid, dev->acpi_root.acpi_uid,
++		      dev->acpi_root.acpi_uid_str, dev->acpi_root.acpi_cid_str);
++		new = efidp_make_acpi_hid_ex(buf + off, size ? size - off : 0,
++					    dev->acpi_root.acpi_hid,
++					    dev->acpi_root.acpi_uid,
++					    dev->acpi_root.acpi_cid,
++					    dev->acpi_root.acpi_hid_str,
++					    dev->acpi_root.acpi_uid_str,
++					    dev->acpi_root.acpi_cid_str);
++		if (new < 0) {
++			efi_error("efidp_make_acpi_hid_ex() failed");
++			return new;
++		}
++	} else {
++		debug("creating acpi_hid dp hid:0x%08x uid:0x%0"PRIx64,
++		      dev->acpi_root.acpi_hid,
++		      dev->acpi_root.acpi_uid);
++		new = efidp_make_acpi_hid(buf + off, size ? size - off : 0,
++					 dev->acpi_root.acpi_hid,
++					 dev->acpi_root.acpi_uid);
++		if (new < 0) {
++			efi_error("efidp_make_acpi_hid() failed");
++			return new;
++		}
++	}
++	sz += new;
++
++	debug("returning %zd", sz);
++	return sz;
+ }
+ 
+ enum interface_type acpi_root_iftypes[] = { acpi_root, unknown };
+ 
+ struct dev_probe HIDDEN acpi_root_parser = {
+-        .name = "acpi_root",
+-        .iftypes = acpi_root_iftypes,
+-        .flags = DEV_PROVIDES_ROOT,
+-        .parse = parse_acpi_root,
+-        .create = dp_create_acpi_root,
++	.name = "acpi_root",
++	.iftypes = acpi_root_iftypes,
++	.flags = DEV_PROVIDES_ROOT,
++	.parse = parse_acpi_root,
++	.create = dp_create_acpi_root,
+ };
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/linux-acpi.c b/src/linux-acpi.c
+index 346eba09041..919f4654ae3 100644
+--- a/src/linux-acpi.c
++++ b/src/linux-acpi.c
+@@ -31,89 +31,91 @@
+ int HIDDEN
+ parse_acpi_hid_uid(struct device *dev, const char *fmt, ...)
+ {
+-        int rc;
+-        char *path = NULL;
+-        va_list ap;
+-        char *fbuf = NULL;
+-        uint16_t tmp16;
+-        uint32_t acpi_hid = 0;
+-        uint64_t acpi_uid_int = 0;
++	int rc;
++	char *path = NULL;
++	va_list ap;
++	char *fbuf = NULL;
++	uint16_t tmp16;
++	uint32_t acpi_hid = 0;
++	uint64_t acpi_uid_int = 0;
+ 
+-        debug("entry");
++	debug("entry");
+ 
+-        va_start(ap, fmt);
+-        rc = vasprintfa(&path, fmt, ap);
+-        va_end(ap);
+-        debug("path:%s rc:%d", path, rc);
+-        if (rc < 0 || path == NULL)
+-                return -1;
++	va_start(ap, fmt);
++	rc = vasprintfa(&path, fmt, ap);
++	va_end(ap);
++	debug("path:%s rc:%d", path, rc);
++	if (rc < 0 || path == NULL)
++		return -1;
+ 
+-        rc = read_sysfs_file(&fbuf, "%s/firmware_node/path", path);
+-        if (rc > 0 && fbuf) {
+-                size_t l = strlen(fbuf);
+-                if (l > 1) {
+-                        fbuf[l-1] = 0;
+-                        dev->acpi_root.acpi_cid_str = strdup(fbuf);
+-                        debug("Setting ACPI root path to \"%s\"", fbuf);
+-                }
+-        }
++	rc = read_sysfs_file(&fbuf, "%s/firmware_node/path", path);
++	if (rc > 0 && fbuf) {
++		size_t l = strlen(fbuf);
++		if (l > 1) {
++			fbuf[l-1] = 0;
++			dev->acpi_root.acpi_cid_str = strdup(fbuf);
++			debug("Setting ACPI root path to \"%s\"", fbuf);
++		}
++	}
+ 
+-        rc = read_sysfs_file(&fbuf, "%s/firmware_node/hid", path);
+-        if (rc < 0 || fbuf == NULL) {
+-                efi_error("could not read %s/firmware_node/hid", path);
+-                return -1;
+-        }
++	rc = read_sysfs_file(&fbuf, "%s/firmware_node/hid", path);
++	if (rc < 0 || fbuf == NULL) {
++		efi_error("could not read %s/firmware_node/hid", path);
++		return -1;
++	}
+ 
+-        rc = strlen(fbuf);
+-        if (rc < 4) {
++	rc = strlen(fbuf);
++	if (rc < 4) {
+ hid_err:
+-                efi_error("could not parse %s/firmware_node/hid", path);
+-                return -1;
+-        }
+-        rc -= 4;
++		efi_error("could not parse %s/firmware_node/hid", path);
++		return -1;
++	}
++	rc -= 4;
+ 
+-        rc = sscanf((char *)fbuf + rc, "%04hx", &tmp16);
+-        debug("rc:%d hid:0x%08x\n", rc, tmp16);
+-        if (rc != 1)
+-                goto hid_err;
++	rc = sscanf((char *)fbuf + rc, "%04hx", &tmp16);
++	debug("rc:%d hid:0x%08x\n", rc, tmp16);
++	if (rc != 1)
++		goto hid_err;
+ 
+-        acpi_hid = EFIDP_EFI_PNP_ID(tmp16);
++	acpi_hid = EFIDP_EFI_PNP_ID(tmp16);
+ 
+-        /*
+-         * Apparently basically nothing can look up a PcieRoot() node,
+-         * because they just check _CID.  So since _CID for the root pretty
+-         * much always has to be PNP0A03 anyway, just use that no matter
+-         * what.
+-         */
+-        if (acpi_hid == EFIDP_ACPI_PCIE_ROOT_HID)
+-                acpi_hid = EFIDP_ACPI_PCI_ROOT_HID;
+-        dev->acpi_root.acpi_hid = acpi_hid;
+-        debug("acpi root HID:0x%08x", acpi_hid);
++	/*
++	 * Apparently basically nothing can look up a PcieRoot() node,
++	 * because they just check _CID.  So since _CID for the root pretty
++	 * much always has to be PNP0A03 anyway, just use that no matter
++	 * what.
++	 */
++	if (acpi_hid == EFIDP_ACPI_PCIE_ROOT_HID)
++		acpi_hid = EFIDP_ACPI_PCI_ROOT_HID;
++	dev->acpi_root.acpi_hid = acpi_hid;
++	debug("acpi root HID:0x%08x", acpi_hid);
+ 
+-        errno = 0;
+-        fbuf = NULL;
+-        rc = read_sysfs_file(&fbuf, "%s/firmware_node/uid", path);
+-        if ((rc < 0 && errno != ENOENT) || (rc > 0 && fbuf == NULL)) {
+-                efi_error("could not read %s/firmware_node/uid", path);
+-                return -1;
+-        }
+-        if (rc > 0) {
+-                rc = sscanf((char *)fbuf, "%"PRIu64"\n", &acpi_uid_int);
+-                if (rc == 1) {
+-                        dev->acpi_root.acpi_uid = acpi_uid_int;
+-                } else {
+-                        /* kernel uses "%s\n" to print it, so there
+-                         * should always be some value and a newline... */
+-                        int l = strlen((char *)fbuf);
+-                        if (l >= 1) {
+-                                fbuf[l-1] = '\0';
+-                                dev->acpi_root.acpi_uid_str = strdup(fbuf);
+-                        }
+-                }
+-        }
+-        debug("acpi root UID:0x%"PRIx64" uidstr:\"%s\"",
+-              dev->acpi_root.acpi_uid, dev->acpi_root.acpi_uid_str);
++	errno = 0;
++	fbuf = NULL;
++	rc = read_sysfs_file(&fbuf, "%s/firmware_node/uid", path);
++	if ((rc < 0 && errno != ENOENT) || (rc > 0 && fbuf == NULL)) {
++		efi_error("could not read %s/firmware_node/uid", path);
++		return -1;
++	}
++	if (rc > 0) {
++		rc = sscanf((char *)fbuf, "%"PRIu64"\n", &acpi_uid_int);
++		if (rc == 1) {
++			dev->acpi_root.acpi_uid = acpi_uid_int;
++		} else {
++			/* kernel uses "%s\n" to print it, so there
++			 * should always be some value and a newline... */
++			int l = strlen((char *)fbuf);
++			if (l >= 1) {
++				fbuf[l-1] = '\0';
++				dev->acpi_root.acpi_uid_str = strdup(fbuf);
++			}
++		}
++	}
++	debug("acpi root UID:0x%"PRIx64" uidstr:\"%s\"",
++	      dev->acpi_root.acpi_uid, dev->acpi_root.acpi_uid_str);
+ 
+-        errno = 0;
+-        return 0;
++	errno = 0;
++	return 0;
+ }
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/linux-ata.c b/src/linux-ata.c
+index 43e5f4c5d23..b6a7c2dcf8a 100644
+--- a/src/linux-ata.c
++++ b/src/linux-ata.c
+@@ -31,22 +31,22 @@
+ bool HIDDEN
+ is_pata(struct device *dev)
+ {
+-        if (!strncmp(dev->driver, "pata_", 5) ||
+-            !strncmp(dev->driver, "ata_", 4))
+-                return true;
+-
+-        if (dev->n_pci_devs > 0 &&
+-            dev->pci_dev[dev->n_pci_devs - 1].driverlink) {
+-                char *slash = dev->pci_dev[dev->n_pci_devs - 1].driverlink;
+-
+-                slash = strrchr(slash, '/');
+-                if (slash &&
+-                    (!strncmp(slash, "/ata_", 5) ||
+-                     !strncmp(slash, "/pata_", 6)))
+-                    return true;
+-        }
+-
+-        return false;
++	if (!strncmp(dev->driver, "pata_", 5) ||
++	    !strncmp(dev->driver, "ata_", 4))
++		return true;
++
++	if (dev->n_pci_devs > 0 &&
++	    dev->pci_dev[dev->n_pci_devs - 1].driverlink) {
++		char *slash = dev->pci_dev[dev->n_pci_devs - 1].driverlink;
++
++		slash = strrchr(slash, '/');
++		if (slash &&
++		    (!strncmp(slash, "/ata_", 5) ||
++		     !strncmp(slash, "/pata_", 6)))
++		    return true;
++	}
++
++	return false;
+ }
+ 
+ /*
+@@ -60,101 +60,103 @@ is_pata(struct device *dev)
+ static ssize_t
+ parse_ata(struct device *dev, const char *current, const char *root UNUSED)
+ {
+-        uint32_t scsi_host, scsi_bus, scsi_device, scsi_target;
+-        uint64_t scsi_lun;
+-        int pos;
+-
+-        debug("entry");
+-        /* IDE disks can have up to 64 partitions, or 6 bits worth,
+-         * and have one bit for the disk number.
+-         * This leaves an extra bit at the top.
+-         */
+-        if (dev->major == 3) {
+-                dev->disknum = (dev->minor >> 6) & 1;
+-                dev->controllernum = (dev->major - 3 + 0) + dev->disknum;
+-                dev->interface_type = ata;
+-                set_part(dev, dev->minor & 0x3F);
+-        } else if (dev->major == 22) {
+-                dev->disknum = (dev->minor >> 6) & 1;
+-                dev->controllernum = (dev->major - 22 + 2) + dev->disknum;
+-                dev->interface_type = ata;
+-                set_part(dev, dev->minor & 0x3F);
+-        } else if (dev->major >= 33 && dev->major <= 34) {
+-                dev->disknum = (dev->minor >> 6) & 1;
+-                dev->controllernum = (dev->major - 33 + 4) + dev->disknum;
+-                dev->interface_type = ata;
+-                set_part(dev, dev->minor & 0x3F);
+-        } else if (dev->major >= 56 && dev->major <= 57) {
+-                dev->disknum = (dev->minor >> 6) & 1;
+-                dev->controllernum = (dev->major - 56 + 8) + dev->disknum;
+-                dev->interface_type = ata;
+-                set_part(dev, dev->minor & 0x3F);
+-        } else if (dev->major >= 88 && dev->major <= 91) {
+-                dev->disknum = (dev->minor >> 6) & 1;
+-                dev->controllernum = (dev->major - 88 + 12) + dev->disknum;
+-                dev->interface_type = ata;
+-                set_part(dev, dev->minor & 0x3F);
+-        } else {
+-                debug("If this is ATA, it isn't using a traditional IDE inode.");
+-        }
+-
+-        if (is_pata(dev)) {
+-                dev->interface_type = ata;
+-        } else {
+-                /*
+-                 * If it isn't one of the pata drivers or ata_piix, it isn't a
+-                 * PATA device.
+-                 */
+-                return 0;
+-        }
+-
+-        char *host = strstr(current, "/host");
+-        if (!host)
+-                return -1;
+-
+-        pos = parse_scsi_link(host + 1, &scsi_host,
+-                              &scsi_bus, &scsi_device,
+-                              &scsi_target, &scsi_lun,
+-                              NULL, NULL, NULL);
+-        if (pos < 0)
+-                return -1;
+-
+-        dev->ata_info.scsi_host = scsi_host;
+-        dev->ata_info.scsi_bus = scsi_bus;
+-        dev->ata_info.scsi_device = scsi_device;
+-        dev->ata_info.scsi_target = scsi_target;
+-        dev->ata_info.scsi_lun = scsi_lun;
+-
+-        char *block = strstr(current, "/block/");
+-        if (!block)
+-                return -1;
+-        return block + 1 - current;
++	uint32_t scsi_host, scsi_bus, scsi_device, scsi_target;
++	uint64_t scsi_lun;
++	int pos;
++
++	debug("entry");
++	/* IDE disks can have up to 64 partitions, or 6 bits worth,
++	 * and have one bit for the disk number.
++	 * This leaves an extra bit at the top.
++	 */
++	if (dev->major == 3) {
++		dev->disknum = (dev->minor >> 6) & 1;
++		dev->controllernum = (dev->major - 3 + 0) + dev->disknum;
++		dev->interface_type = ata;
++		set_part(dev, dev->minor & 0x3F);
++	} else if (dev->major == 22) {
++		dev->disknum = (dev->minor >> 6) & 1;
++		dev->controllernum = (dev->major - 22 + 2) + dev->disknum;
++		dev->interface_type = ata;
++		set_part(dev, dev->minor & 0x3F);
++	} else if (dev->major >= 33 && dev->major <= 34) {
++		dev->disknum = (dev->minor >> 6) & 1;
++		dev->controllernum = (dev->major - 33 + 4) + dev->disknum;
++		dev->interface_type = ata;
++		set_part(dev, dev->minor & 0x3F);
++	} else if (dev->major >= 56 && dev->major <= 57) {
++		dev->disknum = (dev->minor >> 6) & 1;
++		dev->controllernum = (dev->major - 56 + 8) + dev->disknum;
++		dev->interface_type = ata;
++		set_part(dev, dev->minor & 0x3F);
++	} else if (dev->major >= 88 && dev->major <= 91) {
++		dev->disknum = (dev->minor >> 6) & 1;
++		dev->controllernum = (dev->major - 88 + 12) + dev->disknum;
++		dev->interface_type = ata;
++		set_part(dev, dev->minor & 0x3F);
++	} else {
++		debug("If this is ATA, it isn't using a traditional IDE inode.");
++	}
++
++	if (is_pata(dev)) {
++		dev->interface_type = ata;
++	} else {
++		/*
++		 * If it isn't one of the pata drivers or ata_piix, it isn't a
++		 * PATA device.
++		 */
++		return 0;
++	}
++
++	char *host = strstr(current, "/host");
++	if (!host)
++		return -1;
++
++	pos = parse_scsi_link(host + 1, &scsi_host,
++			      &scsi_bus, &scsi_device,
++			      &scsi_target, &scsi_lun,
++			      NULL, NULL, NULL);
++	if (pos < 0)
++		return -1;
++
++	dev->ata_info.scsi_host = scsi_host;
++	dev->ata_info.scsi_bus = scsi_bus;
++	dev->ata_info.scsi_device = scsi_device;
++	dev->ata_info.scsi_target = scsi_target;
++	dev->ata_info.scsi_lun = scsi_lun;
++
++	char *block = strstr(current, "/block/");
++	if (!block)
++		return -1;
++	return block + 1 - current;
+ }
+ 
+ static ssize_t
+ dp_create_ata(struct device *dev,
+-              uint8_t *buf, ssize_t size, ssize_t off)
++	      uint8_t *buf, ssize_t size, ssize_t off)
+ {
+-        ssize_t sz;
++	ssize_t sz;
+ 
+-        debug("entry");
++	debug("entry");
+ 
+-        sz = efidp_make_atapi(buf + off, size ? size - off : 0,
+-                              dev->ata_info.scsi_device,
+-                              dev->ata_info.scsi_target - 1,
+-                              dev->ata_info.scsi_lun);
+-        if (sz < 0)
+-                efi_error("efidp_make_atapi() failed");
++	sz = efidp_make_atapi(buf + off, size ? size - off : 0,
++			      dev->ata_info.scsi_device,
++			      dev->ata_info.scsi_target - 1,
++			      dev->ata_info.scsi_lun);
++	if (sz < 0)
++		efi_error("efidp_make_atapi() failed");
+ 
+-        return sz;
++	return sz;
+ }
+ 
+ enum interface_type ata_iftypes[] = { ata, atapi, unknown };
+ 
+ struct dev_probe ata_parser = {
+-        .name = "ata",
+-        .iftypes = ata_iftypes,
+-        .flags = DEV_PROVIDES_HD,
+-        .parse = parse_ata,
+-        .create = dp_create_ata,
++	.name = "ata",
++	.iftypes = ata_iftypes,
++	.flags = DEV_PROVIDES_HD,
++	.parse = parse_ata,
++	.create = dp_create_ata,
+ };
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/linux-emmc.c b/src/linux-emmc.c
+index b290ed0a2bd..8af316a1723 100644
+--- a/src/linux-emmc.c
++++ b/src/linux-emmc.c
+@@ -47,74 +47,76 @@
+ static ssize_t
+ parse_emmc(struct device *dev, const char *current, const char *root UNUSED)
+ {
+-        int rc;
+-        int32_t tosser0, tosser1, tosser2, tosser3, slot_id, partition;
+-        int pos0 = 0, pos1 = 0;
+-
+-        debug("entry");
+-
+-        debug("searching for mmc_host/mmc0/mmc0:0001/block/mmcblk0 or mmc_host/mmc0/mmc0:0001/block/mmcblk0/mmcblk0p1");
+-        rc = sscanf(current, "mmc_host/mmc%d/mmc%d:%d/block/mmcblk%d%n/mmcblk%dp%d%n",
+-                    &tosser0, &tosser1, &tosser2, &slot_id,
+-                    &pos0, &tosser3, &partition, &pos1);
+-        debug("current:\"%s\" rc:%d pos0:%d pos1:%d\n", current, rc, pos0, pos1);
+-        /*
+-         * If it isn't of that form, it's not one of our emmc devices.
+-         */
+-        if (rc != 4 && rc != 6)
+-                return 0;
+-
+-        dev->emmc_info.slot_id = slot_id;
+-        dev->interface_type = emmc;
+-
+-        if (rc == 6) {
+-                if (dev->part == -1)
+-                        dev->part = partition;
+-
+-                pos0 = pos1;
+-        }
+-
+-        return pos0;
++	int rc;
++	int32_t tosser0, tosser1, tosser2, tosser3, slot_id, partition;
++	int pos0 = 0, pos1 = 0;
++
++	debug("entry");
++
++	debug("searching for mmc_host/mmc0/mmc0:0001/block/mmcblk0 or mmc_host/mmc0/mmc0:0001/block/mmcblk0/mmcblk0p1");
++	rc = sscanf(current, "mmc_host/mmc%d/mmc%d:%d/block/mmcblk%d%n/mmcblk%dp%d%n",
++	            &tosser0, &tosser1, &tosser2, &slot_id,
++	            &pos0, &tosser3, &partition, &pos1);
++	debug("current:\"%s\" rc:%d pos0:%d pos1:%d\n", current, rc, pos0, pos1);
++	/*
++	 * If it isn't of that form, it's not one of our emmc devices.
++	 */
++	if (rc != 4 && rc != 6)
++	        return 0;
++
++	dev->emmc_info.slot_id = slot_id;
++	dev->interface_type = emmc;
++
++	if (rc == 6) {
++	        if (dev->part == -1)
++	                dev->part = partition;
++
++	        pos0 = pos1;
++	}
++
++	return pos0;
+ }
+ 
+ static ssize_t
+ dp_create_emmc(struct device *dev,
+-               uint8_t *buf,  ssize_t size, ssize_t off)
++	       uint8_t *buf,  ssize_t size, ssize_t off)
+ {
+-        ssize_t sz;
++	ssize_t sz;
+ 
+-        debug("entry");
++	debug("entry");
+ 
+-        sz = efidp_make_emmc(buf + off, size ? size - off : 0,
+-                             dev->emmc_info.slot_id);
+-        return sz;
++	sz = efidp_make_emmc(buf + off, size ? size - off : 0,
++	                     dev->emmc_info.slot_id);
++	return sz;
+ }
+ 
+ static char *
+ make_part_name(struct device *dev)
+ {
+-        char *ret = NULL;
+-        ssize_t rc;
++	char *ret = NULL;
++	ssize_t rc;
+ 
+-        if (dev->part < 1)
+-                return NULL;
++	if (dev->part < 1)
++	        return NULL;
+ 
+-        rc = asprintf(&ret, "%sp%d", dev->disk_name, dev->part);
+-        if (rc < 0) {
+-                efi_error("could not allocate memory");
+-                return NULL;
+-        }
++	rc = asprintf(&ret, "%sp%d", dev->disk_name, dev->part);
++	if (rc < 0) {
++	        efi_error("could not allocate memory");
++	        return NULL;
++	}
+ 
+-        return ret;
++	return ret;
+ }
+ 
+ static enum interface_type emmc_iftypes[] = { emmc, unknown };
+ 
+ struct dev_probe HIDDEN emmc_parser = {
+-        .name = "emmc",
+-        .iftypes = emmc_iftypes,
+-        .flags = DEV_PROVIDES_HD,
+-        .parse = parse_emmc,
+-        .create = dp_create_emmc,
+-        .make_part_name = make_part_name,
++	.name = "emmc",
++	.iftypes = emmc_iftypes,
++	.flags = DEV_PROVIDES_HD,
++	.parse = parse_emmc,
++	.create = dp_create_emmc,
++	.make_part_name = make_part_name,
+ };
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/linux-i2o.c b/src/linux-i2o.c
+index 3ce25b957bf..ebd92aeeb53 100644
+--- a/src/linux-i2o.c
++++ b/src/linux-i2o.c
+@@ -35,29 +35,31 @@
+ static ssize_t
+ parse_i2o(struct device *dev, const char *current UNUSED, const char *root UNUSED)
+ {
+-        debug("entry");
+-        /* I2O disks can have up to 16 partitions, or 4 bits worth. */
+-        if (dev->major >= 80 && dev->major <= 87) {
+-                dev->interface_type = i2o;
+-                dev->disknum = 16*(dev->major-80) + (dev->minor >> 4);
+-                set_part(dev, dev->minor & 0xF);
+-        } else {
+-                /* If it isn't those majors, it's not an i2o dev */
+-                return 0;
+-        }
+-
+-        char *block = strstr(current, "/block/");
+-        if (!block)
+-                return -1;
+-        return block + 1 - current;
++	debug("entry");
++	/* I2O disks can have up to 16 partitions, or 4 bits worth. */
++	if (dev->major >= 80 && dev->major <= 87) {
++	        dev->interface_type = i2o;
++	        dev->disknum = 16*(dev->major-80) + (dev->minor >> 4);
++	        set_part(dev, dev->minor & 0xF);
++	} else {
++	        /* If it isn't those majors, it's not an i2o dev */
++	        return 0;
++	}
++
++	char *block = strstr(current, "/block/");
++	if (!block)
++	        return -1;
++	return block + 1 - current;
+ }
+ 
+ enum interface_type i2o_iftypes[] = { i2o, unknown };
+ 
+ struct dev_probe HIDDEN i2o_parser = {
+-        .name = "i2o",
+-        .iftypes = i2o_iftypes,
+-        .flags = DEV_PROVIDES_HD,
+-        .parse = parse_i2o,
+-        .create = NULL,
++	.name = "i2o",
++	.iftypes = i2o_iftypes,
++	.flags = DEV_PROVIDES_HD,
++	.parse = parse_i2o,
++	.create = NULL,
+ };
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/linux-md.c b/src/linux-md.c
+index cb584c96c4b..3d5975d8195 100644
+--- a/src/linux-md.c
++++ b/src/linux-md.c
+@@ -41,55 +41,57 @@
+ static ssize_t
+ parse_md(struct device *dev, const char *current, const char *root UNUSED)
+ {
+-        int rc;
+-        int32_t md, tosser0, part;
+-        int pos0 = 0, pos1 = 0;
++	int rc;
++	int32_t md, tosser0, part;
++	int pos0 = 0, pos1 = 0;
+ 
+-        debug("entry");
++	debug("entry");
+ 
+-        debug("searching for mdM/mdMpN");
+-        rc = sscanf(current, "md%d/%nmd%dp%d%n",
+-                    &md, &pos0, &tosser0, &part, &pos1);
+-        debug("current:\"%s\" rc:%d pos0:%d pos1:%d\n", current, rc, pos0, pos1);
+-        /*
+-         * If it isn't of that form, it's not one of our partitioned md devices.
+-         */
+-        if (rc != 3)
+-                return 0;
++	debug("searching for mdM/mdMpN");
++	rc = sscanf(current, "md%d/%nmd%dp%d%n",
++	            &md, &pos0, &tosser0, &part, &pos1);
++	debug("current:\"%s\" rc:%d pos0:%d pos1:%d\n", current, rc, pos0, pos1);
++	/*
++	 * If it isn't of that form, it's not one of our partitioned md devices.
++	 */
++	if (rc != 3)
++	        return 0;
+ 
+-        dev->interface_type = md;
++	dev->interface_type = md;
+ 
+-        if (dev->part == -1)
+-                dev->part = part;
++	if (dev->part == -1)
++	        dev->part = part;
+ 
+-        return pos1;
++	return pos1;
+ }
+ 
+ 
+ static char *
+ make_part_name(struct device *dev)
+ {
+-        char *ret = NULL;
+-        ssize_t rc;
++	char *ret = NULL;
++	ssize_t rc;
+ 
+-        if (dev->part < 1)
+-                return NULL;
++	if (dev->part < 1)
++	        return NULL;
+ 
+-        rc = asprintf(&ret, "%sp%d", dev->disk_name, dev->part);
+-        if (rc < 0) {
+-                efi_error("could not allocate memory");
+-                return NULL;
+-        }
++	rc = asprintf(&ret, "%sp%d", dev->disk_name, dev->part);
++	if (rc < 0) {
++	        efi_error("could not allocate memory");
++	        return NULL;
++	}
+ 
+-        return ret;
++	return ret;
+ }
+ 
+ static enum interface_type md_iftypes[] = { md, unknown };
+ 
+ struct dev_probe HIDDEN md_parser = {
+-        .name = "md",
+-        .iftypes = md_iftypes,
+-        .flags = DEV_PROVIDES_HD,
+-        .parse = parse_md,
+-        .make_part_name = make_part_name,
++	.name = "md",
++	.iftypes = md_iftypes,
++	.flags = DEV_PROVIDES_HD,
++	.parse = parse_md,
++	.make_part_name = make_part_name,
+ };
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/linux-nvme.c b/src/linux-nvme.c
+index 1d8fc654f76..e6e42c7a3fc 100644
+--- a/src/linux-nvme.c
++++ b/src/linux-nvme.c
+@@ -50,110 +50,111 @@
+ static ssize_t
+ parse_nvme(struct device *dev, const char *current, const char *root UNUSED)
+ {
+-        int rc;
+-        int32_t tosser0, tosser1, tosser2, ctrl_id, ns_id, partition;
+-        uint8_t *filebuf = NULL;
+-        int pos0 = 0, pos1 = 0;
+-
+-        debug("entry");
+-
+-        debug("searching for nvme/nvme0/nvme0n1 or nvme/nvme0/nvme0n1/nvme0n1p1");
+-        rc = sscanf(current, "nvme/nvme%d/nvme%dn%d%n/nvme%dn%dp%d%n",
+-                    &tosser0, &ctrl_id, &ns_id, &pos0,
+-                    &tosser1, &tosser2, &partition, &pos1);
+-        debug("current:\"%s\" rc:%d pos0:%d pos1:%d\n", current, rc, pos0, pos1);
+-        /*
+-         * If it isn't of that form, it's not one of our nvme devices.
+-         */
+-        if (rc != 3 && rc != 6)
+-                return 0;
+-
+-        dev->nvme_info.ctrl_id = ctrl_id;
+-        dev->nvme_info.ns_id = ns_id;
+-        dev->nvme_info.has_eui = 0;
+-        dev->interface_type = nvme;
+-
+-        if (rc == 6) {
+-                if (dev->part == -1)
+-                        dev->part = partition;
+-
+-                pos0 = pos1;
+-        }
+-
+-        /*
+-         * now fish the eui out of sysfs is there is one...
+-         */
+-        rc = read_sysfs_file(&filebuf,
+-                             "class/block/nvme%dn%d/eui",
+-                             ctrl_id, ns_id);
+-        if ((rc < 0 && errno == ENOENT) || filebuf == NULL) {
+-                rc = read_sysfs_file(&filebuf,
+-                             "class/block/nvme%dn%d/device/eui",
+-                             ctrl_id, ns_id);
+-        }
+-        if (rc >= 0 && filebuf != NULL) {
+-                uint8_t eui[8];
+-                if (rc < 23) {
+-                        errno = EINVAL;
+-                        return -1;
+-                }
+-                rc = sscanf((char *)filebuf,
+-                            "%02hhx %02hhx %02hhx %02hhx "
+-                            "%02hhx %02hhx %02hhx %02hhx",
+-                            &eui[0], &eui[1], &eui[2], &eui[3],
+-                            &eui[4], &eui[5], &eui[6], &eui[7]);
+-                if (rc < 8) {
+-                        errno = EINVAL;
+-                        return -1;
+-                }
+-                dev->nvme_info.has_eui = 1;
+-                memcpy(dev->nvme_info.eui, eui, sizeof(eui));
+-        }
+-
+-        return pos0;
++	int rc;
++	int32_t tosser0, tosser1, tosser2, ctrl_id, ns_id, partition;
++	uint8_t *filebuf = NULL;
++	int pos0 = 0, pos1 = 0;
++
++	debug("entry");
++
++	debug("searching for nvme/nvme0/nvme0n1 or nvme/nvme0/nvme0n1/nvme0n1p1");
++	rc = sscanf(current, "nvme/nvme%d/nvme%dn%d%n/nvme%dn%dp%d%n",
++	            &tosser0, &ctrl_id, &ns_id, &pos0,
++	            &tosser1, &tosser2, &partition, &pos1);
++	debug("current:\"%s\" rc:%d pos0:%d pos1:%d\n", current, rc, pos0, pos1);
++	/*
++	 * If it isn't of that form, it's not one of our nvme devices.
++	 */
++	if (rc != 3 && rc != 6)
++	        return 0;
++
++	dev->nvme_info.ctrl_id = ctrl_id;
++	dev->nvme_info.ns_id = ns_id;
++	dev->nvme_info.has_eui = 0;
++	dev->interface_type = nvme;
++
++	if (rc == 6) {
++	        if (dev->part == -1)
++	                dev->part = partition;
++
++	        pos0 = pos1;
++	}
++
++	/*
++	 * now fish the eui out of sysfs is there is one...
++	 */
++	rc = read_sysfs_file(&filebuf,
++	                     "class/block/nvme%dn%d/eui",
++	                     ctrl_id, ns_id);
++	if ((rc < 0 && errno == ENOENT) || filebuf == NULL) {
++	        rc = read_sysfs_file(&filebuf,
++	                     "class/block/nvme%dn%d/device/eui",
++	                     ctrl_id, ns_id);
++	}
++	if (rc >= 0 && filebuf != NULL) {
++	        uint8_t eui[8];
++	        if (rc < 23) {
++	                errno = EINVAL;
++	                return -1;
++	        }
++	        rc = sscanf((char *)filebuf,
++	                    "%02hhx %02hhx %02hhx %02hhx "
++	                    "%02hhx %02hhx %02hhx %02hhx",
++	                    &eui[0], &eui[1], &eui[2], &eui[3],
++	                    &eui[4], &eui[5], &eui[6], &eui[7]);
++	        if (rc < 8) {
++	                errno = EINVAL;
++	                return -1;
++	        }
++	        dev->nvme_info.has_eui = 1;
++	        memcpy(dev->nvme_info.eui, eui, sizeof(eui));
++	}
++
++	return pos0;
+ }
+ 
+ static ssize_t
+ dp_create_nvme(struct device *dev,
+-               uint8_t *buf,  ssize_t size, ssize_t off)
++	       uint8_t *buf,  ssize_t size, ssize_t off)
+ {
+-        ssize_t sz;
++	ssize_t sz;
+ 
+-        debug("entry");
++	debug("entry");
+ 
+-        sz = efidp_make_nvme(buf + off, size ? size - off : 0,
+-                             dev->nvme_info.ns_id,
+-                             dev->nvme_info.has_eui ? dev->nvme_info.eui
+-                                                        : NULL);
+-        return sz;
++	sz = efidp_make_nvme(buf + off, size ? size - off : 0,
++	                     dev->nvme_info.ns_id,
++	                     dev->nvme_info.has_eui ? dev->nvme_info.eui
++	                                                : NULL);
++	return sz;
+ }
+ 
+ static char *
+ make_part_name(struct device *dev)
+ {
+-        char *ret = NULL;
+-        ssize_t rc;
++	char *ret = NULL;
++	ssize_t rc;
+ 
+-        if (dev->part < 1)
+-                return NULL;
++	if (dev->part < 1)
++	        return NULL;
+ 
+-        rc = asprintf(&ret, "%sp%d", dev->disk_name, dev->part);
+-        if (rc < 0) {
+-                efi_error("could not allocate memory");
+-                return NULL;
+-        }
++	rc = asprintf(&ret, "%sp%d", dev->disk_name, dev->part);
++	if (rc < 0) {
++	        efi_error("could not allocate memory");
++	        return NULL;
++	}
+ 
+-        return ret;
++	return ret;
+ }
+ 
+ static enum interface_type nvme_iftypes[] = { nvme, unknown };
+ 
+ struct dev_probe HIDDEN nvme_parser = {
+-        .name = "nvme",
+-        .iftypes = nvme_iftypes,
+-        .flags = DEV_PROVIDES_HD,
+-        .parse = parse_nvme,
+-        .create = dp_create_nvme,
+-        .make_part_name = make_part_name,
++	.name = "nvme",
++	.iftypes = nvme_iftypes,
++	.flags = DEV_PROVIDES_HD,
++	.parse = parse_nvme,
++	.create = dp_create_nvme,
++	.make_part_name = make_part_name,
+ };
+ 
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/linux-pci-root.c b/src/linux-pci-root.c
+index 0b5ad48d6db..ede9321395c 100644
+--- a/src/linux-pci-root.c
++++ b/src/linux-pci-root.c
+@@ -43,83 +43,85 @@
+ static ssize_t
+ parse_pci_root(struct device *dev, const char *current, const char *root UNUSED)
+ {
+-        int rc;
+-        int pos = 0;
+-        uint16_t root_domain;
+-        uint8_t root_bus;
+-        const char *devpart = current;
++	int rc;
++	int pos = 0;
++	uint16_t root_domain;
++	uint8_t root_bus;
++	const char *devpart = current;
+ 
+-        debug("entry");
++	debug("entry");
+ 
+-        /*
+-         * find the pci root domain and port; they basically look like:
+-         * pci0000:00/
+-         *    ^d   ^p
+-         */
+-        rc = sscanf(devpart, "../../devices/pci%hx:%hhx/%n", &root_domain, &root_bus, &pos);
+-        /*
+-         * If we can't find that, it's not a PCI device.
+-         */
+-        if (rc != 2)
+-                return 0;
+-        devpart += pos;
++	/*
++	 * find the pci root domain and port; they basically look like:
++	 * pci0000:00/
++	 *    ^d   ^p
++	 */
++	rc = sscanf(devpart, "../../devices/pci%hx:%hhx/%n", &root_domain, &root_bus, &pos);
++	/*
++	 * If we can't find that, it's not a PCI device.
++	 */
++	if (rc != 2)
++	        return 0;
++	devpart += pos;
+ 
+-        dev->pci_root.pci_domain = root_domain;
+-        dev->pci_root.pci_bus = root_bus;
++	dev->pci_root.pci_domain = root_domain;
++	dev->pci_root.pci_bus = root_bus;
+ 
+-        rc = parse_acpi_hid_uid(dev, "devices/pci%04hx:%02hhx",
+-                                root_domain, root_bus);
+-        if (rc < 0)
+-                return -1;
++	rc = parse_acpi_hid_uid(dev, "devices/pci%04hx:%02hhx",
++	                        root_domain, root_bus);
++	if (rc < 0)
++	        return -1;
+ 
+-        errno = 0;
+-        return devpart - current;
++	errno = 0;
++	return devpart - current;
+ }
+ 
+ static ssize_t
+ dp_create_pci_root(struct device *dev UNUSED,
+-                   uint8_t *buf, ssize_t size, ssize_t off)
++	           uint8_t *buf, ssize_t size, ssize_t off)
+ {
+-        ssize_t new = 0, sz = 0;
+-        debug("entry buf:%p size:%zd off:%zd", buf, size, off);
+-        debug("returning 0");
+-        if (dev->acpi_root.acpi_uid_str) {
+-                debug("creating acpi_hid_ex dp hid:0x%08x uid:\"%s\"",
+-                      dev->acpi_root.acpi_hid,
+-                      dev->acpi_root.acpi_uid_str);
+-                new = efidp_make_acpi_hid_ex(buf + off, size ? size - off : 0,
+-                                            dev->acpi_root.acpi_hid,
+-                                            0, 0, "",
+-                                            dev->acpi_root.acpi_uid_str,
+-                                            "");
+-                if (new < 0) {
+-                        efi_error("efidp_make_acpi_hid_ex() failed");
+-                        return new;
+-                }
+-        } else {
+-                debug("creating acpi_hid dp hid:0x%08x uid:0x%0"PRIx64,
+-                      dev->acpi_root.acpi_hid,
+-                      dev->acpi_root.acpi_uid);
+-                new = efidp_make_acpi_hid(buf + off, size ? size - off : 0,
+-                                         dev->acpi_root.acpi_hid,
+-                                         dev->acpi_root.acpi_uid);
+-                if (new < 0) {
+-                        efi_error("efidp_make_acpi_hid() failed");
+-                        return new;
+-                }
+-        }
+-        sz += new;
++	ssize_t new = 0, sz = 0;
++	debug("entry buf:%p size:%zd off:%zd", buf, size, off);
++	debug("returning 0");
++	if (dev->acpi_root.acpi_uid_str) {
++	        debug("creating acpi_hid_ex dp hid:0x%08x uid:\"%s\"",
++	              dev->acpi_root.acpi_hid,
++	              dev->acpi_root.acpi_uid_str);
++	        new = efidp_make_acpi_hid_ex(buf + off, size ? size - off : 0,
++	                                    dev->acpi_root.acpi_hid,
++	                                    0, 0, "",
++	                                    dev->acpi_root.acpi_uid_str,
++	                                    "");
++	        if (new < 0) {
++	                efi_error("efidp_make_acpi_hid_ex() failed");
++	                return new;
++	        }
++	} else {
++	        debug("creating acpi_hid dp hid:0x%08x uid:0x%0"PRIx64,
++	              dev->acpi_root.acpi_hid,
++	              dev->acpi_root.acpi_uid);
++	        new = efidp_make_acpi_hid(buf + off, size ? size - off : 0,
++	                                 dev->acpi_root.acpi_hid,
++	                                 dev->acpi_root.acpi_uid);
++	        if (new < 0) {
++	                efi_error("efidp_make_acpi_hid() failed");
++	                return new;
++	        }
++	}
++	sz += new;
+ 
+-        debug("returning %zd", sz);
+-        return sz;
++	debug("returning %zd", sz);
++	return sz;
+ }
+ 
+ enum interface_type pci_root_iftypes[] = { pci_root, unknown };
+ 
+ struct dev_probe HIDDEN pci_root_parser = {
+-        .name = "pci_root",
+-        .iftypes = pci_root_iftypes,
+-        .flags = DEV_PROVIDES_ROOT,
+-        .parse = parse_pci_root,
+-        .create = dp_create_pci_root,
++	.name = "pci_root",
++	.iftypes = pci_root_iftypes,
++	.flags = DEV_PROVIDES_ROOT,
++	.parse = parse_pci_root,
++	.create = dp_create_pci_root,
+ };
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/linux-pci.c b/src/linux-pci.c
+index c3b9fcf9092..4c715df3d6e 100644
+--- a/src/linux-pci.c
++++ b/src/linux-pci.c
+@@ -45,110 +45,112 @@
+ static ssize_t
+ parse_pci(struct device *dev, const char *current, const char *root)
+ {
+-        int rc;
+-        int pos = 0;
+-        const char *devpart = current;
+-
+-        debug("entry");
+-
+-        /* find the pci domain/bus/device/function:
+-         * 0000:00:01.0/0000:01:00.0/
+-         *              ^d   ^b ^d ^f (of the last one in the series)
+-         */
+-        while (*devpart) {
+-                uint16_t domain;
+-                uint8_t bus, device, function;
+-                struct pci_dev_info *pci_dev;
+-                unsigned int i = dev->n_pci_devs;
+-                struct stat statbuf;
+-
+-                debug("devpart is \"%s\"", devpart);
+-                pos = 0;
+-                debug("searching for 0000:00:00.0/");
+-                rc = sscanf(devpart, "%hx:%hhx:%hhx.%hhx/%n",
+-                            &domain, &bus, &device, &function, &pos);
+-                debug("current:\"%s\" rc:%d pos:%d", devpart, rc, pos);
+-                if (rc != 4)
+-                        break;
+-                devpart += pos;
+-
+-                debug("found pci domain %04hx:%02hhx:%02hhx.%02hhx",
+-                      domain, bus, device, function);
+-                pci_dev = realloc(dev->pci_dev,
+-                                  sizeof(*pci_dev) * (i + 1));
+-                if (!pci_dev) {
+-                        efi_error("realloc(%p, %zd * (%d + 1)) failed",
+-                                  dev->pci_dev, sizeof(*pci_dev), i);
+-                        return -1;
+-                }
+-                dev->pci_dev = pci_dev;
+-
+-                dev->pci_dev[i].pci_domain = domain;
+-                dev->pci_dev[i].pci_bus = bus;
+-                dev->pci_dev[i].pci_device = device;
+-                dev->pci_dev[i].pci_function = function;
+-                char *tmp = strndup(root, devpart-root+1);
+-                char *linkbuf = NULL;
+-                if (!tmp) {
+-                        efi_error("could not allocate memory");
+-                        return -1;
+-                }
+-                tmp[devpart - root] = '\0';
+-                rc = sysfs_stat(&statbuf, "class/block/%s/driver", tmp);
+-                if (rc < 0 && errno == ENOENT) {
+-                        debug("No driver link for /sys/class/block/%s", tmp);
+-                        debug("Assuming this is just a buggy platform core driver");
+-                        dev->pci_dev[i].driverlink = NULL;
+-                } else {
+-                        rc = sysfs_readlink(&linkbuf, "class/block/%s/driver", tmp);
+-                        if (rc < 0 || !linkbuf) {
+-                                efi_error("Could not find driver for pci device %s", tmp);
+-                                free(tmp);
+-                                return -1;
+-                        } else {
+-                                dev->pci_dev[i].driverlink = strdup(linkbuf);
+-                                debug("driver:%s\n", linkbuf);
+-                        }
+-                }
+-                free(tmp);
+-                dev->n_pci_devs += 1;
+-        }
+-
+-        debug("next:\"%s\"", devpart);
+-        return devpart - current;
++	int rc;
++	int pos = 0;
++	const char *devpart = current;
++
++	debug("entry");
++
++	/* find the pci domain/bus/device/function:
++	 * 0000:00:01.0/0000:01:00.0/
++	 *              ^d   ^b ^d ^f (of the last one in the series)
++	 */
++	while (*devpart) {
++	        uint16_t domain;
++	        uint8_t bus, device, function;
++	        struct pci_dev_info *pci_dev;
++	        unsigned int i = dev->n_pci_devs;
++	        struct stat statbuf;
++
++	        debug("devpart is \"%s\"", devpart);
++	        pos = 0;
++	        debug("searching for 0000:00:00.0/");
++	        rc = sscanf(devpart, "%hx:%hhx:%hhx.%hhx/%n",
++	                    &domain, &bus, &device, &function, &pos);
++	        debug("current:\"%s\" rc:%d pos:%d", devpart, rc, pos);
++	        if (rc != 4)
++	                break;
++	        devpart += pos;
++
++	        debug("found pci domain %04hx:%02hhx:%02hhx.%02hhx",
++	              domain, bus, device, function);
++	        pci_dev = realloc(dev->pci_dev,
++	                          sizeof(*pci_dev) * (i + 1));
++	        if (!pci_dev) {
++	                efi_error("realloc(%p, %zd * (%d + 1)) failed",
++	                          dev->pci_dev, sizeof(*pci_dev), i);
++	                return -1;
++	        }
++	        dev->pci_dev = pci_dev;
++
++	        dev->pci_dev[i].pci_domain = domain;
++	        dev->pci_dev[i].pci_bus = bus;
++	        dev->pci_dev[i].pci_device = device;
++	        dev->pci_dev[i].pci_function = function;
++	        char *tmp = strndup(root, devpart-root+1);
++	        char *linkbuf = NULL;
++	        if (!tmp) {
++	                efi_error("could not allocate memory");
++	                return -1;
++	        }
++	        tmp[devpart - root] = '\0';
++	        rc = sysfs_stat(&statbuf, "class/block/%s/driver", tmp);
++	        if (rc < 0 && errno == ENOENT) {
++	                debug("No driver link for /sys/class/block/%s", tmp);
++	                debug("Assuming this is just a buggy platform core driver");
++	                dev->pci_dev[i].driverlink = NULL;
++	        } else {
++	                rc = sysfs_readlink(&linkbuf, "class/block/%s/driver", tmp);
++	                if (rc < 0 || !linkbuf) {
++	                        efi_error("Could not find driver for pci device %s", tmp);
++	                        free(tmp);
++	                        return -1;
++	                } else {
++	                        dev->pci_dev[i].driverlink = strdup(linkbuf);
++	                        debug("driver:%s\n", linkbuf);
++	                }
++	        }
++	        free(tmp);
++	        dev->n_pci_devs += 1;
++	}
++
++	debug("next:\"%s\"", devpart);
++	return devpart - current;
+ }
+ 
+ static ssize_t
+ dp_create_pci(struct device *dev,
+-              uint8_t *buf, ssize_t size, ssize_t off)
++	      uint8_t *buf, ssize_t size, ssize_t off)
+ {
+-        ssize_t sz = 0, new = 0;
+-
+-        debug("entry buf:%p size:%zd off:%zd", buf, size, off);
+-
+-        debug("creating PCI device path nodes");
+-        for (unsigned int i = 0; i < dev->n_pci_devs; i++) {
+-                debug("creating PCI device path node %u", i);
+-                new = efidp_make_pci(buf + off, size ? size - off : 0,
+-                                    dev->pci_dev[i].pci_device,
+-                                    dev->pci_dev[i].pci_function);
+-                if (new < 0) {
+-                        efi_error("efidp_make_pci() failed");
+-                        return new;
+-                }
+-                sz += new;
+-                off += new;
+-        }
+-
+-        debug("returning %zd", sz);
+-        return sz;
++	ssize_t sz = 0, new = 0;
++
++	debug("entry buf:%p size:%zd off:%zd", buf, size, off);
++
++	debug("creating PCI device path nodes");
++	for (unsigned int i = 0; i < dev->n_pci_devs; i++) {
++	        debug("creating PCI device path node %u", i);
++	        new = efidp_make_pci(buf + off, size ? size - off : 0,
++	                            dev->pci_dev[i].pci_device,
++	                            dev->pci_dev[i].pci_function);
++	        if (new < 0) {
++	                efi_error("efidp_make_pci() failed");
++	                return new;
++	        }
++	        sz += new;
++	        off += new;
++	}
++
++	debug("returning %zd", sz);
++	return sz;
+ }
+ 
+ enum interface_type pci_iftypes[] = { pci, unknown };
+ 
+ struct dev_probe HIDDEN pci_parser = {
+-        .name = "pci",
+-        .iftypes = pci_iftypes,
+-        .parse = parse_pci,
+-        .create = dp_create_pci,
++	.name = "pci",
++	.iftypes = pci_iftypes,
++	.parse = parse_pci,
++	.create = dp_create_pci,
+ };
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/linux-pmem.c b/src/linux-pmem.c
+index 4d981fc8ad3..099ac8aef8c 100644
+--- a/src/linux-pmem.c
++++ b/src/linux-pmem.c
+@@ -72,120 +72,122 @@
+ static ssize_t
+ parse_pmem(struct device *dev, const char *current, const char *root UNUSED)
+ {
+-        uint8_t *filebuf = NULL;
+-        uint8_t system, sysbus, acpi_id;
+-        uint16_t pnp_id;
+-        int ndbus, region, btt_region_id, btt_id, rc, pos;
+-        char *namespace = NULL;
++	uint8_t *filebuf = NULL;
++	uint8_t system, sysbus, acpi_id;
++	uint16_t pnp_id;
++	int ndbus, region, btt_region_id, btt_id, rc, pos;
++	char *namespace = NULL;
+ 
+-        debug("entry");
++	debug("entry");
+ 
+-        if (!strcmp(dev->driver, "nd_pmem")) {
+-                ;
++	if (!strcmp(dev->driver, "nd_pmem")) {
++	        ;
+ #if 0 /* dunno */
+-        } else if (!strcmp(dev->driver, "nd_blk")) {
+-                /* dunno */
+-                dev->inteface_type = scsi;
++	} else if (!strcmp(dev->driver, "nd_blk")) {
++	        /* dunno */
++	        dev->inteface_type = scsi;
+ #endif
+-        } else {
+-                /*
+-                 * not a pmem device
+-                 */
+-                return 0;
+-        }
+-
+-        /*
+-         * We're not actually using any of the values here except pos (our
+-         * return value), but rather just being paranoid that this is the sort
+-         * of device we care about.
+-         *
+-         * 259:0 -> ../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region12/btt12.1/block/pmem12s
+-         */
+-        rc = sscanf(current,
+-                    "../../devices/LNXSYSTM:%hhx/LNXSYBUS:%hhx/ACPI%hx:%hhx/ndbus%d/region%d/btt%d.%d/%n",
+-                    &system, &sysbus, &pnp_id, &acpi_id, &ndbus, &region,
+-                    &btt_region_id, &btt_id, &pos);
+-        if (rc < 8)
+-                return 0;
+-
+-        /*
+-         * but the UUID we really do need to have.
+-         */
+-        rc = read_sysfs_file(&filebuf,
+-                             "class/block/%s/device/namespace", dev->disk_name);
+-        if ((rc < 0 && errno == ENOENT) || filebuf == NULL)
+-                return -1;
+-
+-        rc = sscanf((char *)filebuf, "%ms[^\n]\n", &namespace);
+-        if (rc != 1 || namespace == NULL)
+-                return -1;
+-
+-        filebuf = NULL;
+-        debug("nvdimm namespace is \"%s\"", namespace);
+-        rc = read_sysfs_file(&filebuf, "bus/nd/devices/%s/uuid", namespace);
+-        free(namespace);
+-        if (rc < 0 || filebuf == NULL)
+-                return -1;
+-
+-        rc = efi_str_to_guid((char *)filebuf,
+-                             &dev->nvdimm_info.namespace_label);
+-        if (rc < 0)
+-                return -1;
+-
+-        filebuf = NULL;
+-        rc = read_sysfs_file(&filebuf, "class/block/%s/device/uuid",
+-                             dev->disk_name);
+-        if (rc < 0 || filebuf == NULL)
+-                return -1;
+-
+-        rc = efi_str_to_guid((char *)filebuf,
+-                             &dev->nvdimm_info.nvdimm_label);
+-        if (rc < 0)
+-                return -1;
+-
+-        /*
+-         * Right now it's not clear what encoding NVDIMM($uuid) gets in the
+-         * binary format, so this will be in the mixed endian format EFI GUIDs
+-         * are in (33221100-1100-1100-0011-223344556677) unless you set this
+-         * variable.
+-         */
+-        if (getenv("LIBEFIBOOT_SWIZZLE_PMEM_UUID") != NULL) {
+-                swizzle_guid_to_uuid(&dev->nvdimm_info.namespace_label);
+-                swizzle_guid_to_uuid(&dev->nvdimm_info.nvdimm_label);
+-        }
+-
+-        dev->interface_type = nd_pmem;
+-
+-        return pos;
++	} else {
++	        /*
++	         * not a pmem device
++	         */
++	        return 0;
++	}
++
++	/*
++	 * We're not actually using any of the values here except pos (our
++	 * return value), but rather just being paranoid that this is the sort
++	 * of device we care about.
++	 *
++	 * 259:0 -> ../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region12/btt12.1/block/pmem12s
++	 */
++	rc = sscanf(current,
++	            "../../devices/LNXSYSTM:%hhx/LNXSYBUS:%hhx/ACPI%hx:%hhx/ndbus%d/region%d/btt%d.%d/%n",
++	            &system, &sysbus, &pnp_id, &acpi_id, &ndbus, &region,
++	            &btt_region_id, &btt_id, &pos);
++	if (rc < 8)
++	        return 0;
++
++	/*
++	 * but the UUID we really do need to have.
++	 */
++	rc = read_sysfs_file(&filebuf,
++	                     "class/block/%s/device/namespace", dev->disk_name);
++	if ((rc < 0 && errno == ENOENT) || filebuf == NULL)
++	        return -1;
++
++	rc = sscanf((char *)filebuf, "%ms[^\n]\n", &namespace);
++	if (rc != 1 || namespace == NULL)
++	        return -1;
++
++	filebuf = NULL;
++	debug("nvdimm namespace is \"%s\"", namespace);
++	rc = read_sysfs_file(&filebuf, "bus/nd/devices/%s/uuid", namespace);
++	free(namespace);
++	if (rc < 0 || filebuf == NULL)
++	        return -1;
++
++	rc = efi_str_to_guid((char *)filebuf,
++	                     &dev->nvdimm_info.namespace_label);
++	if (rc < 0)
++	        return -1;
++
++	filebuf = NULL;
++	rc = read_sysfs_file(&filebuf, "class/block/%s/device/uuid",
++	                     dev->disk_name);
++	if (rc < 0 || filebuf == NULL)
++	        return -1;
++
++	rc = efi_str_to_guid((char *)filebuf,
++	                     &dev->nvdimm_info.nvdimm_label);
++	if (rc < 0)
++	        return -1;
++
++	/*
++	 * Right now it's not clear what encoding NVDIMM($uuid) gets in the
++	 * binary format, so this will be in the mixed endian format EFI GUIDs
++	 * are in (33221100-1100-1100-0011-223344556677) unless you set this
++	 * variable.
++	 */
++	if (getenv("LIBEFIBOOT_SWIZZLE_PMEM_UUID") != NULL) {
++	        swizzle_guid_to_uuid(&dev->nvdimm_info.namespace_label);
++	        swizzle_guid_to_uuid(&dev->nvdimm_info.nvdimm_label);
++	}
++
++	dev->interface_type = nd_pmem;
++
++	return pos;
+ }
+ 
+ static ssize_t
+ dp_create_pmem(struct device *dev,
+-               uint8_t *buf, ssize_t size, ssize_t off)
++	       uint8_t *buf, ssize_t size, ssize_t off)
+ {
+-        ssize_t sz, sz1;
++	ssize_t sz, sz1;
+ 
+-        debug("entry");
++	debug("entry");
+ 
+-        sz = efidp_make_nvdimm(buf + off, size ? size - off : 0,
+-                               &dev->nvdimm_info.namespace_label);
+-        if (sz < 0)
+-                return sz;
+-        off += sz;
+-        sz1 = efidp_make_nvdimm(buf + off, size ? size - off : 0,
+-                                &dev->nvdimm_info.nvdimm_label);
+-        if (sz1 < 0)
+-                return sz1;
++	sz = efidp_make_nvdimm(buf + off, size ? size - off : 0,
++	                       &dev->nvdimm_info.namespace_label);
++	if (sz < 0)
++	        return sz;
++	off += sz;
++	sz1 = efidp_make_nvdimm(buf + off, size ? size - off : 0,
++	                        &dev->nvdimm_info.nvdimm_label);
++	if (sz1 < 0)
++	        return sz1;
+ 
+-        return sz + sz1;
++	return sz + sz1;
+ }
+ 
+ enum interface_type pmem_iftypes[] = { nd_pmem, unknown };
+ 
+ struct dev_probe HIDDEN pmem_parser = {
+-        .name = "pmem",
+-        .iftypes = pmem_iftypes,
+-        .flags = DEV_PROVIDES_ROOT|DEV_PROVIDES_HD,
+-        .parse = parse_pmem,
+-        .create = dp_create_pmem,
++	.name = "pmem",
++	.iftypes = pmem_iftypes,
++	.flags = DEV_PROVIDES_ROOT|DEV_PROVIDES_HD,
++	.parse = parse_pmem,
++	.create = dp_create_pmem,
+ };
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/linux-sas.c b/src/linux-sas.c
+index bb04fe83064..f985deeaa3f 100644
+--- a/src/linux-sas.c
++++ b/src/linux-sas.c
+@@ -30,87 +30,87 @@
+ 
+ static int
+ get_port_expander_sas_address(uint64_t *sas_address, uint32_t scsi_host,
+-                              uint32_t local_port_id,
+-                              uint32_t remote_port_id, uint32_t remote_scsi_target)
++	                      uint32_t local_port_id,
++	                      uint32_t remote_port_id, uint32_t remote_scsi_target)
+ {
+-        uint8_t *filebuf = NULL;
+-        int rc;
++	uint8_t *filebuf = NULL;
++	int rc;
+ 
+-        /*
+-         * We find sas_address via this insanity:
+-         * /sys/class/scsi_host/host2 -> ../../devices/pci0000:74/0000:74:02.0/host2/scsi_host/host2
+-         * /sys/devices/pci0000:74/0000:74:02.0/host2/scsi_host/host2/device -> ../../../host2
+-         * /sys/devices/pci0000:74/0000:74:02.0/host2/device -> ../../../host2
+-         * /sys/devices/host2/port-2:0/expander-2:0/sas_device/expander-2:0/sas_address
+-         *
+-         * But since host2 is always host2, we can skip most of that and just
+-         * go for:
+-         * /sys/devices/pci0000:74/0000:74:02.0/host2/port-2:0/expander-2:0/port-2:0:2/end_device-2:0:2/sas_device/end_device-2:0:2/sas_address
+-        */
++	/*
++	 * We find sas_address via this insanity:
++	 * /sys/class/scsi_host/host2 -> ../../devices/pci0000:74/0000:74:02.0/host2/scsi_host/host2
++	 * /sys/devices/pci0000:74/0000:74:02.0/host2/scsi_host/host2/device -> ../../../host2
++	 * /sys/devices/pci0000:74/0000:74:02.0/host2/device -> ../../../host2
++	 * /sys/devices/host2/port-2:0/expander-2:0/sas_device/expander-2:0/sas_address
++	 *
++	 * But since host2 is always host2, we can skip most of that and just
++	 * go for:
++	 * /sys/devices/pci0000:74/0000:74:02.0/host2/port-2:0/expander-2:0/port-2:0:2/end_device-2:0:2/sas_device/end_device-2:0:2/sas_address
++	*/
+ 
+ #if 0 /* previously thought this was right, but it's the expander's address, not the target's address */
+-        /*
+-         * /sys/class/scsi_host/host2/device/port-2:0/expander-2:0/sas_device/expander-2:0/sas_address
+-         * ... I think.  I would have expected that to be port-2:0:0 and I
+-         * don't understand why it isn't. (I do now; this is the expander not
+-         * the port.)
+-         */
++	/*
++	 * /sys/class/scsi_host/host2/device/port-2:0/expander-2:0/sas_device/expander-2:0/sas_address
++	 * ... I think.  I would have expected that to be port-2:0:0 and I
++	 * don't understand why it isn't. (I do now; this is the expander not
++	 * the port.)
++	 */
+ 
+-        debug("looking for /sys/class/scsi_host/host%d/device/port-%d:%d/expander-%d:%d/sas_device/expander-%d:%d/sas_address",
+-              scsi_host, scsi_host, port_id, scsi_host, remote_scsi_target, scsi_host, remote_scsi_target);
+-        rc = read_sysfs_file(&filebuf,
+-                             "class/scsi_host/host%d/device/port-%d:%d/expander-%d:%d/sas_device/expander-%d:%d/sas_address",
+-                             scsi_host, scsi_host, port_id, scsi_host, remote_scsi_target, scsi_host, remote_scsi_target);
+-        if (rc < 0 || filebuf == NULL) {
+-                debug("didn't find it.");
+-                return -1;
+-        }
++	debug("looking for /sys/class/scsi_host/host%d/device/port-%d:%d/expander-%d:%d/sas_device/expander-%d:%d/sas_address",
++	      scsi_host, scsi_host, port_id, scsi_host, remote_scsi_target, scsi_host, remote_scsi_target);
++	rc = read_sysfs_file(&filebuf,
++	                     "class/scsi_host/host%d/device/port-%d:%d/expander-%d:%d/sas_device/expander-%d:%d/sas_address",
++	                     scsi_host, scsi_host, port_id, scsi_host, remote_scsi_target, scsi_host, remote_scsi_target);
++	if (rc < 0 || filebuf == NULL) {
++	        debug("didn't find it.");
++	        return -1;
++	}
+ #else
+-        debug("looking for /sys/class/scsi_host/host%d/device/port-%d:%d/expander-%d:%d/port-%d:%d:%d/end_device-%d:%d:%d/sas_device/end_device-%d:%d:%d/sas_address",
+-              scsi_host,
+-              scsi_host, local_port_id,
+-              scsi_host, remote_scsi_target,
+-              scsi_host, remote_scsi_target, remote_port_id,
+-              scsi_host, remote_scsi_target, remote_port_id,
+-              scsi_host, remote_scsi_target, remote_port_id);
+-        rc = read_sysfs_file(&filebuf,
+-                             "class/scsi_host/host%d/device/port-%d:%d/expander-%d:%d/port-%d:%d:%d/end_device-%d:%d:%d/sas_device/end_device-%d:%d:%d/sas_address",
+-                             scsi_host,
+-                             scsi_host, local_port_id,
+-                             scsi_host, remote_scsi_target,
+-                             scsi_host, remote_scsi_target, remote_port_id,
+-                             scsi_host, remote_scsi_target, remote_port_id,
+-                             scsi_host, remote_scsi_target, remote_port_id);
+-        if (rc < 0 || filebuf == NULL) {
+-                debug("didn't find it.");
+-                return -1;
+-        }
++	debug("looking for /sys/class/scsi_host/host%d/device/port-%d:%d/expander-%d:%d/port-%d:%d:%d/end_device-%d:%d:%d/sas_device/end_device-%d:%d:%d/sas_address",
++	      scsi_host,
++	      scsi_host, local_port_id,
++	      scsi_host, remote_scsi_target,
++	      scsi_host, remote_scsi_target, remote_port_id,
++	      scsi_host, remote_scsi_target, remote_port_id,
++	      scsi_host, remote_scsi_target, remote_port_id);
++	rc = read_sysfs_file(&filebuf,
++	                     "class/scsi_host/host%d/device/port-%d:%d/expander-%d:%d/port-%d:%d:%d/end_device-%d:%d:%d/sas_device/end_device-%d:%d:%d/sas_address",
++	                     scsi_host,
++	                     scsi_host, local_port_id,
++	                     scsi_host, remote_scsi_target,
++	                     scsi_host, remote_scsi_target, remote_port_id,
++	                     scsi_host, remote_scsi_target, remote_port_id,
++	                     scsi_host, remote_scsi_target, remote_port_id);
++	if (rc < 0 || filebuf == NULL) {
++	        debug("didn't find it.");
++	        return -1;
++	}
+ #endif
+ 
+-        rc = sscanf((char *)filebuf, "%"PRIx64, sas_address);
+-        if (rc != 1)
+-                return -1;
++	rc = sscanf((char *)filebuf, "%"PRIx64, sas_address);
++	if (rc != 1)
++	        return -1;
+ 
+-        return 0;
++	return 0;
+ }
+ 
+ static int
+ get_local_sas_address(uint64_t *sas_address, struct device *dev)
+ {
+-        int rc;
+-        char *filebuf = NULL;
++	int rc;
++	char *filebuf = NULL;
+ 
+-        rc = read_sysfs_file(&filebuf,
+-                             "class/block/%s/device/sas_address",
+-                             dev->disk_name);
+-        if (rc < 0 || filebuf == NULL)
+-                return -1;
++	rc = read_sysfs_file(&filebuf,
++	                     "class/block/%s/device/sas_address",
++	                     dev->disk_name);
++	if (rc < 0 || filebuf == NULL)
++	        return -1;
+ 
+-        rc = sscanf((char *)filebuf, "%"PRIx64, sas_address);
+-        if (rc != 1)
+-                return -1;
++	rc = sscanf((char *)filebuf, "%"PRIx64, sas_address);
++	if (rc != 1)
++	        return -1;
+ 
+-        return 0;
++	return 0;
+ }
+ 
+ /*
+@@ -150,115 +150,117 @@ get_local_sas_address(uint64_t *sas_address, struct device *dev)
+ static ssize_t
+ parse_sas(struct device *dev, const char *current, const char *root UNUSED)
+ {
+-        struct stat statbuf = { 0, };
+-        int rc;
+-        uint32_t scsi_host, scsi_bus, scsi_device, scsi_target;
+-        uint32_t local_port_id = 0, remote_port_id = 0;
+-        uint32_t remote_scsi_target = 0;
+-        uint64_t scsi_lun;
+-        ssize_t pos;
+-        uint64_t sas_address = 0;
++	struct stat statbuf = { 0, };
++	int rc;
++	uint32_t scsi_host, scsi_bus, scsi_device, scsi_target;
++	uint32_t local_port_id = 0, remote_port_id = 0;
++	uint32_t remote_scsi_target = 0;
++	uint64_t scsi_lun;
++	ssize_t pos;
++	uint64_t sas_address = 0;
+ 
+-        debug("entry");
++	debug("entry");
+ 
+-        pos = parse_scsi_link(current, &scsi_host,
+-                              &scsi_bus, &scsi_device,
+-                              &scsi_target, &scsi_lun,
+-                              &local_port_id, &remote_port_id,
+-                              &remote_scsi_target);
+-        /*
+-         * If we can't parse the scsi data, it isn't a sas device, so return 0
+-         * not error.
+-         */
+-        if (pos < 0)
+-                return 0;
++	pos = parse_scsi_link(current, &scsi_host,
++	                      &scsi_bus, &scsi_device,
++	                      &scsi_target, &scsi_lun,
++	                      &local_port_id, &remote_port_id,
++	                      &remote_scsi_target);
++	/*
++	 * If we can't parse the scsi data, it isn't a sas device, so return 0
++	 * not error.
++	 */
++	if (pos < 0)
++	        return 0;
+ 
+-        /*
+-         * Make sure it has the actual /SAS/ bits before we continue
+-         * validating all this junk.
+-         */
+-        debug("looking for /sys/class/scsi_host/host%d/host_sas_address", scsi_host);
+-        rc = sysfs_stat(&statbuf,
+-                        "class/scsi_host/host%d/host_sas_address",
+-                        scsi_host);
+-        /*
+-         * If we can't parse the scsi data, it isn't a /SAS/ device, so return
+-         * 0 not error. Later errors mean it is an ata device, but we can't
+-         * parse it right, so they return -1.
+-         */
+-        if (rc < 0) {
+-                debug("didn't find it.");
+-                /*
+-                 * If it's on a port expander, it won't have the
+-                 * host_sas_address, so we need to check if it's a sas_host
+-                 * instead.
+-                 * It may work to just check this to begin with, but I don't
+-                 * have such a device in front of me right now.
+-                 */
+-                debug("looking for /sys/class/sas_host/host%d", scsi_host);
+-                rc = sysfs_stat(&statbuf,
+-                                "class/sas_host/host%d", scsi_host);
+-                if (rc < 0) {
+-                        debug("didn't find it.");
+-                        return 0;
+-                }
+-                debug("found it.");
++	/*
++	 * Make sure it has the actual /SAS/ bits before we continue
++	 * validating all this junk.
++	 */
++	debug("looking for /sys/class/scsi_host/host%d/host_sas_address", scsi_host);
++	rc = sysfs_stat(&statbuf,
++	                "class/scsi_host/host%d/host_sas_address",
++	                scsi_host);
++	/*
++	 * If we can't parse the scsi data, it isn't a /SAS/ device, so return
++	 * 0 not error. Later errors mean it is an ata device, but we can't
++	 * parse it right, so they return -1.
++	 */
++	if (rc < 0) {
++	        debug("didn't find it.");
++	        /*
++	         * If it's on a port expander, it won't have the
++	         * host_sas_address, so we need to check if it's a sas_host
++	         * instead.
++	         * It may work to just check this to begin with, but I don't
++	         * have such a device in front of me right now.
++	         */
++	        debug("looking for /sys/class/sas_host/host%d", scsi_host);
++	        rc = sysfs_stat(&statbuf,
++	                        "class/sas_host/host%d", scsi_host);
++	        if (rc < 0) {
++	                debug("didn't find it.");
++	                return 0;
++	        }
++	        debug("found it.");
+ 
+-                /*
+-                 * So it *is* a sas_host, and we have to fish the sas_address
+-                 * from the remote port
+-                 */
+-                rc = get_port_expander_sas_address(&sas_address, scsi_host,
+-                                                   local_port_id,
+-                                                   remote_port_id,
+-                                                   remote_scsi_target);
+-                if (rc < 0) {
+-                        debug("Couldn't find port expander sas address");
+-                        return 0;
+-                }
+-        } else {
+-                /*
+-                 * we also need to get the actual sas_address from someplace...
+-                 */
+-                debug("found it.");
+-                rc = get_local_sas_address(&sas_address, dev);
+-                if (rc < 0) {
+-                        debug("Couldn't find sas address");
+-                        return 0;
+-                }
+-        }
+-        debug("sas address is 0x%"PRIx64, sas_address);
++	        /*
++	         * So it *is* a sas_host, and we have to fish the sas_address
++	         * from the remote port
++	         */
++	        rc = get_port_expander_sas_address(&sas_address, scsi_host,
++	                                           local_port_id,
++	                                           remote_port_id,
++	                                           remote_scsi_target);
++	        if (rc < 0) {
++	                debug("Couldn't find port expander sas address");
++	                return 0;
++	        }
++	} else {
++	        /*
++	         * we also need to get the actual sas_address from someplace...
++	         */
++	        debug("found it.");
++	        rc = get_local_sas_address(&sas_address, dev);
++	        if (rc < 0) {
++	                debug("Couldn't find sas address");
++	                return 0;
++	        }
++	}
++	debug("sas address is 0x%"PRIx64, sas_address);
+ 
+-        dev->sas_info.sas_address = sas_address;
++	dev->sas_info.sas_address = sas_address;
+ 
+-        dev->scsi_info.scsi_bus = scsi_bus;
+-        dev->scsi_info.scsi_device = scsi_device;
+-        dev->scsi_info.scsi_target = scsi_target;
+-        dev->scsi_info.scsi_lun = scsi_lun;
+-        dev->interface_type = sas;
+-        return pos;
++	dev->scsi_info.scsi_bus = scsi_bus;
++	dev->scsi_info.scsi_device = scsi_device;
++	dev->scsi_info.scsi_target = scsi_target;
++	dev->scsi_info.scsi_lun = scsi_lun;
++	dev->interface_type = sas;
++	return pos;
+ }
+ 
+ static ssize_t
+ dp_create_sas(struct device *dev,
+-              uint8_t *buf,  ssize_t size, ssize_t off)
++	      uint8_t *buf,  ssize_t size, ssize_t off)
+ {
+-        ssize_t sz;
++	ssize_t sz;
+ 
+-        debug("entry");
++	debug("entry");
+ 
+-        sz = efidp_make_sas(buf + off, size ? size - off : 0,
+-                            dev->sas_info.sas_address);
++	sz = efidp_make_sas(buf + off, size ? size - off : 0,
++	                    dev->sas_info.sas_address);
+ 
+-        return sz;
++	return sz;
+ }
+ 
+ enum interface_type sas_iftypes[] = { sas, unknown };
+ 
+ struct dev_probe HIDDEN sas_parser = {
+-        .name = "sas",
+-        .iftypes = sas_iftypes,
+-        .flags = DEV_PROVIDES_HD,
+-        .parse = parse_sas,
+-        .create = dp_create_sas,
++	.name = "sas",
++	.iftypes = sas_iftypes,
++	.flags = DEV_PROVIDES_HD,
++	.parse = parse_sas,
++	.create = dp_create_sas,
+ };
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/linux-sata.c b/src/linux-sata.c
+index 356411724bb..ee285d84a76 100644
+--- a/src/linux-sata.c
++++ b/src/linux-sata.c
+@@ -65,188 +65,190 @@
+ static ssize_t
+ sysfs_sata_get_port_info(uint32_t print_id, struct device *dev)
+ {
+-        DIR *d;
+-        struct dirent *de;
+-        uint8_t *buf = NULL;
+-        int rc;
+-
+-        d = sysfs_opendir("class/ata_device/");
+-        if (!d) {
+-                efi_error("could not open /sys/class/ata_device/");
+-                return -1;
+-        }
+-
+-        while ((de = readdir(d)) != NULL) {
+-                uint32_t found_print_id;
+-                uint32_t found_pmp;
+-                uint32_t found_devno = 0;
+-
+-                if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
+-                        continue;
+-
+-                rc = sscanf(de->d_name, "dev%d.%d.%d", &found_print_id,
+-                            &found_pmp, &found_devno);
+-                if (rc < 2 || rc > 3) {
+-                        closedir(d);
+-                        errno = EINVAL;
+-                        return -1;
+-                } else if (found_print_id != print_id) {
+-                        continue;
+-                } else if (rc == 3) {
+-                        /*
+-                         * the kernel doesn't ever tell us the SATA PMPN
+-                         * sentinal value, it'll give us devM.N instead of
+-                         * devM.N.O in that case instead.
+-                         */
+-                        if (found_pmp > 0x7fff) {
+-                                closedir(d);
+-                                errno = EINVAL;
+-                                return -1;
+-                        }
+-                        dev->sata_info.ata_devno = 0;
+-                        dev->sata_info.ata_pmp = found_pmp;
+-                        break;
+-                } else if (rc == 2) {
+-                        dev->sata_info.ata_devno = 0;
+-                        dev->sata_info.ata_pmp = 0xffff;
+-                        break;
+-                }
+-        }
+-        closedir(d);
+-
+-        rc = read_sysfs_file(&buf, "class/ata_port/ata%d/port_no",
+-                             print_id);
+-        if (rc <= 0 || buf == NULL)
+-                return -1;
+-
+-        rc = sscanf((char *)buf, "%d", &dev->sata_info.ata_port);
+-        if (rc != 1)
+-                return -1;
+-
+-        /*
+-         * ata_port numbers are 1-indexed from libata in the kernel, but
+-         * they're 0-indexed in the spec.  For maximal confusion.
+-         */
+-        if (dev->sata_info.ata_port == 0) {
+-                errno = EINVAL;
+-                return -1;
+-        } else {
+-                dev->sata_info.ata_port -= 1;
+-        }
+-
+-        return 0;
++	DIR *d;
++	struct dirent *de;
++	uint8_t *buf = NULL;
++	int rc;
++
++	d = sysfs_opendir("class/ata_device/");
++	if (!d) {
++	        efi_error("could not open /sys/class/ata_device/");
++	        return -1;
++	}
++
++	while ((de = readdir(d)) != NULL) {
++	        uint32_t found_print_id;
++	        uint32_t found_pmp;
++	        uint32_t found_devno = 0;
++
++	        if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
++	                continue;
++
++	        rc = sscanf(de->d_name, "dev%d.%d.%d", &found_print_id,
++	                    &found_pmp, &found_devno);
++	        if (rc < 2 || rc > 3) {
++	                closedir(d);
++	                errno = EINVAL;
++	                return -1;
++	        } else if (found_print_id != print_id) {
++	                continue;
++	        } else if (rc == 3) {
++	                /*
++	                 * the kernel doesn't ever tell us the SATA PMPN
++	                 * sentinal value, it'll give us devM.N instead of
++	                 * devM.N.O in that case instead.
++	                 */
++	                if (found_pmp > 0x7fff) {
++	                        closedir(d);
++	                        errno = EINVAL;
++	                        return -1;
++	                }
++	                dev->sata_info.ata_devno = 0;
++	                dev->sata_info.ata_pmp = found_pmp;
++	                break;
++	        } else if (rc == 2) {
++	                dev->sata_info.ata_devno = 0;
++	                dev->sata_info.ata_pmp = 0xffff;
++	                break;
++	        }
++	}
++	closedir(d);
++
++	rc = read_sysfs_file(&buf, "class/ata_port/ata%d/port_no",
++	                     print_id);
++	if (rc <= 0 || buf == NULL)
++	        return -1;
++
++	rc = sscanf((char *)buf, "%d", &dev->sata_info.ata_port);
++	if (rc != 1)
++	        return -1;
++
++	/*
++	 * ata_port numbers are 1-indexed from libata in the kernel, but
++	 * they're 0-indexed in the spec.  For maximal confusion.
++	 */
++	if (dev->sata_info.ata_port == 0) {
++	        errno = EINVAL;
++	        return -1;
++	} else {
++	        dev->sata_info.ata_port -= 1;
++	}
++
++	return 0;
+ }
+ 
+ static ssize_t
+ parse_sata(struct device *dev, const char *devlink, const char *root UNUSED)
+ {
+-        const char *current = devlink;
+-        uint32_t print_id;
+-        uint32_t scsi_bus, tosser0;
+-        uint32_t scsi_device, tosser1;
+-        uint32_t scsi_target, tosser2;
+-        uint64_t scsi_lun, tosser3;
+-        int pos = 0;
+-        int rc;
+-
+-        debug("entry");
+-        if (is_pata(dev)) {
+-                debug("This is a PATA device; skipping.");
+-                return 0;
+-        }
+-
+-        /* find the ata info:
+-         * ata1/host0/target0:0:0/0:0:0:0
+-         *    ^dev  ^host   x y z
+-         */
+-        debug("searching for ata1/");
+-        rc = sscanf(current, "ata%"PRIu32"/%n", &print_id, &pos);
+-        debug("current:\"%s\" rc:%d pos:%d\n", current, rc, pos);
+-        /*
+-         * If we don't find this one, it isn't an ata device, so return 0 not
+-         * error.  Later errors mean it is an ata device, but we can't parse
+-         * it right, so they return -1.
+-         */
+-        if (rc != 1)
+-                return 0;
+-        current += pos;
+-        pos = 0;
+-
+-        debug("searching for host0/");
+-        rc = sscanf(current, "host%"PRIu32"/%n", &scsi_bus, &pos);
+-        debug("current:\"%s\" rc:%d pos:%d\n", current, rc, pos);
+-        if (rc != 1)
+-                return -1;
+-        current += pos;
+-        pos = 0;
+-
+-        debug("searching for target0:0:0:0/");
+-        rc = sscanf(current, "target%"PRIu32":%"PRIu32":%"PRIu64"/%n",
+-                    &scsi_device, &scsi_target, &scsi_lun, &pos);
+-        debug("current:\"%s\" rc:%d pos:%d\n", current, rc, pos);
+-        if (rc != 3)
+-                return -1;
+-        current += pos;
+-        pos = 0;
+-
+-        debug("searching for 0:0:0:0/");
+-        rc = sscanf(current, "%"PRIu32":%"PRIu32":%"PRIu32":%"PRIu64"/%n",
+-                    &tosser0, &tosser1, &tosser2, &tosser3, &pos);
+-        debug("current:\"%s\" rc:%d pos:%d\n", current, rc, pos);
+-        if (rc != 4)
+-                return -1;
+-        current += pos;
+-
+-        rc = sysfs_sata_get_port_info(print_id, dev);
+-        if (rc < 0)
+-                return -1;
+-
+-        dev->sata_info.scsi_bus = scsi_bus;
+-        dev->sata_info.scsi_device = scsi_device;
+-        dev->sata_info.scsi_target = scsi_target;
+-        dev->sata_info.scsi_lun = scsi_lun;
+-
+-        if (dev->interface_type == unknown)
+-                dev->interface_type = sata;
+-
+-        return current - devlink;
++	const char *current = devlink;
++	uint32_t print_id;
++	uint32_t scsi_bus, tosser0;
++	uint32_t scsi_device, tosser1;
++	uint32_t scsi_target, tosser2;
++	uint64_t scsi_lun, tosser3;
++	int pos = 0;
++	int rc;
++
++	debug("entry");
++	if (is_pata(dev)) {
++	        debug("This is a PATA device; skipping.");
++	        return 0;
++	}
++
++	/* find the ata info:
++	 * ata1/host0/target0:0:0/0:0:0:0
++	 *    ^dev  ^host   x y z
++	 */
++	debug("searching for ata1/");
++	rc = sscanf(current, "ata%"PRIu32"/%n", &print_id, &pos);
++	debug("current:\"%s\" rc:%d pos:%d\n", current, rc, pos);
++	/*
++	 * If we don't find this one, it isn't an ata device, so return 0 not
++	 * error.  Later errors mean it is an ata device, but we can't parse
++	 * it right, so they return -1.
++	 */
++	if (rc != 1)
++	        return 0;
++	current += pos;
++	pos = 0;
++
++	debug("searching for host0/");
++	rc = sscanf(current, "host%"PRIu32"/%n", &scsi_bus, &pos);
++	debug("current:\"%s\" rc:%d pos:%d\n", current, rc, pos);
++	if (rc != 1)
++	        return -1;
++	current += pos;
++	pos = 0;
++
++	debug("searching for target0:0:0:0/");
++	rc = sscanf(current, "target%"PRIu32":%"PRIu32":%"PRIu64"/%n",
++	            &scsi_device, &scsi_target, &scsi_lun, &pos);
++	debug("current:\"%s\" rc:%d pos:%d\n", current, rc, pos);
++	if (rc != 3)
++	        return -1;
++	current += pos;
++	pos = 0;
++
++	debug("searching for 0:0:0:0/");
++	rc = sscanf(current, "%"PRIu32":%"PRIu32":%"PRIu32":%"PRIu64"/%n",
++	            &tosser0, &tosser1, &tosser2, &tosser3, &pos);
++	debug("current:\"%s\" rc:%d pos:%d\n", current, rc, pos);
++	if (rc != 4)
++	        return -1;
++	current += pos;
++
++	rc = sysfs_sata_get_port_info(print_id, dev);
++	if (rc < 0)
++	        return -1;
++
++	dev->sata_info.scsi_bus = scsi_bus;
++	dev->sata_info.scsi_device = scsi_device;
++	dev->sata_info.scsi_target = scsi_target;
++	dev->sata_info.scsi_lun = scsi_lun;
++
++	if (dev->interface_type == unknown)
++	        dev->interface_type = sata;
++
++	return current - devlink;
+ }
+ 
+ static ssize_t
+ dp_create_sata(struct device *dev,
+-               uint8_t *buf, ssize_t size, ssize_t off)
++	       uint8_t *buf, ssize_t size, ssize_t off)
+ {
+-        ssize_t sz = -1;
+-
+-        debug("entry buf:%p size:%zd off:%zd", buf, size, off);
+-
+-        if (dev->interface_type == ata || dev->interface_type == atapi) {
+-                sz = efidp_make_atapi(buf + off, size ? size - off : 0,
+-                                      dev->sata_info.ata_port,
+-                                      dev->sata_info.ata_pmp,
+-                                      dev->sata_info.ata_devno);
+-                if (sz < 0)
+-                        efi_error("efidp_make_atapi() failed");
+-        } else if (dev->interface_type == sata) {
+-                sz = efidp_make_sata(buf + off, size ? size - off : 0,
+-                                     dev->sata_info.ata_port,
+-                                     dev->sata_info.ata_pmp,
+-                                     dev->sata_info.ata_devno);
+-                if (sz < 0)
+-                        efi_error("efidp_make_sata() failed");
+-        } else {
+-                return -EINVAL;
+-        }
+-
+-        return sz;
++	ssize_t sz = -1;
++
++	debug("entry buf:%p size:%zd off:%zd", buf, size, off);
++
++	if (dev->interface_type == ata || dev->interface_type == atapi) {
++	        sz = efidp_make_atapi(buf + off, size ? size - off : 0,
++	                              dev->sata_info.ata_port,
++	                              dev->sata_info.ata_pmp,
++	                              dev->sata_info.ata_devno);
++	        if (sz < 0)
++	                efi_error("efidp_make_atapi() failed");
++	} else if (dev->interface_type == sata) {
++	        sz = efidp_make_sata(buf + off, size ? size - off : 0,
++	                             dev->sata_info.ata_port,
++	                             dev->sata_info.ata_pmp,
++	                             dev->sata_info.ata_devno);
++	        if (sz < 0)
++	                efi_error("efidp_make_sata() failed");
++	} else {
++	        return -EINVAL;
++	}
++
++	return sz;
+ }
+ 
+ enum interface_type sata_iftypes[] = { sata, unknown };
+ 
+ struct dev_probe HIDDEN sata_parser = {
+-        .name = "sata",
+-        .iftypes = sata_iftypes,
+-        .flags = DEV_PROVIDES_HD,
+-        .parse = parse_sata,
+-        .create = dp_create_sata,
++	.name = "sata",
++	.iftypes = sata_iftypes,
++	.flags = DEV_PROVIDES_HD,
++	.parse = parse_sata,
++	.create = dp_create_sata,
+ };
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/linux-scsi.c b/src/linux-scsi.c
+index 04892f02b4e..90a85836b1c 100644
+--- a/src/linux-scsi.c
++++ b/src/linux-scsi.c
+@@ -37,268 +37,270 @@
+  */
+ ssize_t HIDDEN
+ parse_scsi_link(const char *current, uint32_t *scsi_host,
+-                uint32_t *scsi_bus, uint32_t *scsi_device,
+-                uint32_t *scsi_target, uint64_t *scsi_lun,
+-                uint32_t *local_port_id, uint32_t *remote_port_id,
+-                uint32_t *remote_target_id)
++	        uint32_t *scsi_bus, uint32_t *scsi_device,
++	        uint32_t *scsi_target, uint64_t *scsi_lun,
++	        uint32_t *local_port_id, uint32_t *remote_port_id,
++	        uint32_t *remote_target_id)
+ {
+-        int rc;
+-        int sz = 0;
+-        int pos0 = 0, pos1 = 0;
+-
+-        debug("entry");
+-        /*
+-         * This structure is completely ridiculous.
+-         *
+-         * /dev/sdc as SAS looks like:
+-         * /sys/dev/block/8:32 -> ../../devices/pci0000:00/0000:00:01.0/0000:01:00.0/host4/port-4:0/end_device-4:0/target4:0:0/4:0:0:0/block/sdc
+-         * /dev/sdc1 looks like:
+-         * /sys/dev/block/8:33 -> ../../devices/pci0000:00/0000:00:01.0/0000:01:00.0/host4/port-4:0/end_device-4:0/target4:0:0/4:0:0:0/block/sdc/sdc1
+-         *
+-         * OR
+-         *
+-         * /dev/sdc as SAS looks like:
+-         * /sys/dev/block/8:32 -> ../../devices/pci0000:00/0000:00:01.0/0000:01:00.0/host4/port-4:2:0/end_device-4:2:0/target4:2:0/4:2:0:0/block/sdc
+-         * /dev/sdc1 looks like:
+-         * /sys/dev/block/8:33 -> ../../devices/pci0000:00/0000:00:01.0/0000:01:00.0/host4/port-4:2:0/end_device-4:2:0/target4:2:0/4:2:0:0/block/sdc/sdc1
+-         *
+-         * /sys/block/sdc/device looks like:
+-         * device-> ../../../4:2:0:0
+-         *
+-         * OR
+-         *
+-         * 8:0 -> ../../devices/pci0000:74/0000:74:02.0/host2/port-2:0/expander-2:0/port-2:0:2/end_device-2:0:2/target2:0:0/2:0:0:0/block/sda
+-         * 8:1 -> ../../devices/pci0000:74/0000:74:02.0/host2/port-2:0/expander-2:0/port-2:0:2/end_device-2:0:2/target2:0:0/2:0:0:0/block/sda/sda1
+-         *
+-         * /sys/block/sda/device looks like:
+-         * device -> ../../../2:0:0:0 *
+-         *
+-         * sas_address exists, but it's hard to find:
+-         * /sys/devices/pci0000:74/0000:74:02.0/host2/port-2:0/expander-2:0/sas_device/expander-2:0/sas_address
+-         * but sas_host_address is nowhere to be found, and sas_address
+-         * doesn't directly exist under /sys/class/ anywhere.  So you actually
+-         * have to go to
+-         * /sys/devices/pci0000:74/0000:74:02.0/host2/port-2:0/expander-2:0/sas_device/expander-2:0/sas_address
+-         * and chop that off to
+-         * /sys/devices/pci0000:74/0000:74:02.0/host2/port-2:0/expander-2:0/
+-         * and then add a bunch of port and end device crap to it to get:
+-         * /sys/devices/pci0000:74/0000:74:02.0/host2/port-2:0/expander-2:0/port-2:0:2/end_device-2:0:2/sas_device/end_device-2:0:2/sas_address
+-
+-         */
+-
+-        /*
+-         * So we start when current is:
+-         * host4/port-4:0/end_device-4:0/target4:0:0/4:0:0:0/block/sdc/sdc1
+-         * or
+-         * host2/port-2:0/expander-2:0/port-2:0:2/end_device-2:0:2/target2:0:0/2:0:0:0/block/sda/sda1
+-         */
+-        uint32_t tosser0, tosser1, tosser2;
+-
+-        /* ignore a bunch of stuff
+-         *    host4/port-4:0
+-         * or host4/port-4:0:0
+-         */
+-        debug("searching for host4/");
+-        rc = sscanf(current, "host%d/%n", scsi_host, &pos0);
+-        debug("current:\"%s\" rc:%d pos0:%d\n", current+sz, rc, pos0);
+-        if (rc != 1)
+-                return -1;
+-        sz += pos0;
+-        pos0 = 0;
+-
+-        /*
+-         * We might have this next:
+-         * port-2:0/expander-2:0/port-2:0:2/end_device-2:0:2/target2:0:0/2:0:0:0/block/sda/sda1
+-         * or:
+-         * port-2:0/end_device-2:0:2/target2:0:0/2:0:0:0/block/sda/sda1
+-         * or maybe (not sure):
+-         * port-2:0:2/end_device-2:0:2/target2:0:0/2:0:0:0/block/sda/sda1
+-         */
+-        debug("searching for port-4:0 or port-4:0:0");
+-        rc = sscanf(current+sz, "port-%d:%d%n:%d%n", &tosser0,
+-                    &tosser1, &pos0, &tosser2, &pos1);
+-        debug("current:\"%s\" rc:%d pos0:%d pos1:%d\n", current+sz, rc, pos0, pos1);
+-        if (rc == 2 || rc == 3) {
+-                sz += pos0;
+-                pos0 = 0;
+-                if (local_port_id && rc == 2)
+-                        *local_port_id = tosser1;
+-                if (remote_port_id && rc == 3)
+-                        *remote_port_id = tosser2;
+-
+-                if (current[sz] == '/')
+-                        sz += 1;
+-
+-                /*
+-                 * We might have this next:
+-                 * expander-2:0/port-2:0:2/end_device-2:0:2/target2:0:0/2:0:0:0/block/sda/sda1
+-                 *                       ^ port id
+-                 *                     ^ scsi target id
+-                 *                   ^ host number
+-                 *          ^ host number
+-                 * We don't actually care about either number in expander-.../,
+-                 * because they're replicated in all the other places.  We just need
+-                 * to get past it.
+-                 */
+-                debug("searching for expander-4:0/");
+-                rc = sscanf(current+sz, "expander-%d:%d/%n", &tosser0, &tosser1, &pos0);
+-                debug("current:\"%s\" rc:%d pos0:%d\n", current+sz, rc, pos0);
+-                if (rc == 2) {
+-                        if (!remote_target_id) {
+-                                efi_error("Device is PHY is a remote target, but remote_target_id is NULL");
+-                                return -1;
+-                        }
+-                        *remote_target_id = tosser1;
+-                        sz += pos0;
+-                        pos0 = 0;
+-
+-                        /*
+-                         * if we have that, we should have a 3-part port next
+-                         */
+-                        debug("searching for port-2:0:2/");
+-                        rc = sscanf(current+sz, "port-%d:%d:%d/%n", &tosser0, &tosser1, &tosser2, &pos0);
+-                        debug("current:\"%s\" rc:%d pos0:%d\n", current+sz, rc, pos0);
+-                        if (rc != 3) {
+-                                efi_error("Couldn't parse port expander port string");
+-                                return -1;
+-                        }
+-                        sz += pos0;
+-                }
+-                pos0 = 0;
+-
+-                /* next:
+-                 *    /end_device-4:0
+-                 * or /end_device-4:0:0
+-                 * awesomely these are the exact same fields that go into port-blah,
+-                 * but we don't care for now about any of them anyway.
+-                 */
+-                debug("searching for end_device-4:0/ or end_device-4:0:0/");
+-                rc = sscanf(current + sz, "end_device-%d:%d%n", &tosser0, &tosser1, &pos0);
+-                debug("current:\"%s\" rc:%d pos0:%d\n", current+sz, rc, pos0);
+-                if (rc != 2)
+-                        return -1;
+-
+-                pos1 = 0;
+-                rc = sscanf(current + sz + pos0, ":%d%n", &tosser2, &pos1);
+-                if (rc != 0 && rc != 1)
+-                        return -1;
+-                if (remote_port_id && rc == 1)
+-                        *remote_port_id = tosser2;
+-                if (local_port_id && rc == 0)
+-                        *local_port_id = tosser1;
+-                sz += pos0 + pos1;
+-                pos0 = pos1 = 0;
+-
+-                if (current[sz] == '/')
+-                        sz += 1;
+-        } else if (rc != 0) {
+-                return -1;
+-        }
+-
+-        /* now:
+-         * /target4:0:0/
+-         */
+-        uint64_t tosser3;
+-        debug("searching for target4:0:0/");
+-        rc = sscanf(current + sz, "target%d:%d:%"PRIu64"/%n", &tosser0, &tosser1,
+-                    &tosser3, &pos0);
+-        debug("current:\"%s\" rc:%d pos0:%d\n", current+sz, rc, pos0);
+-        if (rc != 3)
+-                return -1;
+-        sz += pos0;
+-        pos0 = 0;
+-
+-        /* now:
+-         * %d:%d:%d:%llu/
+-         */
+-        debug("searching for 4:0:0:0/");
+-        rc = sscanf(current + sz, "%d:%d:%d:%"PRIu64"/%n",
+-                    scsi_bus, scsi_device, scsi_target, scsi_lun, &pos0);
+-        debug("current:\"%s\" rc:%d pos0:%d\n", current+sz, rc, pos0);
+-        if (rc != 4)
+-                return -1;
+-        sz += pos0;
+-
+-        debug("returning %d", sz);
+-        return sz;
++	int rc;
++	int sz = 0;
++	int pos0 = 0, pos1 = 0;
++
++	debug("entry");
++	/*
++	 * This structure is completely ridiculous.
++	 *
++	 * /dev/sdc as SAS looks like:
++	 * /sys/dev/block/8:32 -> ../../devices/pci0000:00/0000:00:01.0/0000:01:00.0/host4/port-4:0/end_device-4:0/target4:0:0/4:0:0:0/block/sdc
++	 * /dev/sdc1 looks like:
++	 * /sys/dev/block/8:33 -> ../../devices/pci0000:00/0000:00:01.0/0000:01:00.0/host4/port-4:0/end_device-4:0/target4:0:0/4:0:0:0/block/sdc/sdc1
++	 *
++	 * OR
++	 *
++	 * /dev/sdc as SAS looks like:
++	 * /sys/dev/block/8:32 -> ../../devices/pci0000:00/0000:00:01.0/0000:01:00.0/host4/port-4:2:0/end_device-4:2:0/target4:2:0/4:2:0:0/block/sdc
++	 * /dev/sdc1 looks like:
++	 * /sys/dev/block/8:33 -> ../../devices/pci0000:00/0000:00:01.0/0000:01:00.0/host4/port-4:2:0/end_device-4:2:0/target4:2:0/4:2:0:0/block/sdc/sdc1
++	 *
++	 * /sys/block/sdc/device looks like:
++	 * device-> ../../../4:2:0:0
++	 *
++	 * OR
++	 *
++	 * 8:0 -> ../../devices/pci0000:74/0000:74:02.0/host2/port-2:0/expander-2:0/port-2:0:2/end_device-2:0:2/target2:0:0/2:0:0:0/block/sda
++	 * 8:1 -> ../../devices/pci0000:74/0000:74:02.0/host2/port-2:0/expander-2:0/port-2:0:2/end_device-2:0:2/target2:0:0/2:0:0:0/block/sda/sda1
++	 *
++	 * /sys/block/sda/device looks like:
++	 * device -> ../../../2:0:0:0 *
++	 *
++	 * sas_address exists, but it's hard to find:
++	 * /sys/devices/pci0000:74/0000:74:02.0/host2/port-2:0/expander-2:0/sas_device/expander-2:0/sas_address
++	 * but sas_host_address is nowhere to be found, and sas_address
++	 * doesn't directly exist under /sys/class/ anywhere.  So you actually
++	 * have to go to
++	 * /sys/devices/pci0000:74/0000:74:02.0/host2/port-2:0/expander-2:0/sas_device/expander-2:0/sas_address
++	 * and chop that off to
++	 * /sys/devices/pci0000:74/0000:74:02.0/host2/port-2:0/expander-2:0/
++	 * and then add a bunch of port and end device crap to it to get:
++	 * /sys/devices/pci0000:74/0000:74:02.0/host2/port-2:0/expander-2:0/port-2:0:2/end_device-2:0:2/sas_device/end_device-2:0:2/sas_address
++
++	 */
++
++	/*
++	 * So we start when current is:
++	 * host4/port-4:0/end_device-4:0/target4:0:0/4:0:0:0/block/sdc/sdc1
++	 * or
++	 * host2/port-2:0/expander-2:0/port-2:0:2/end_device-2:0:2/target2:0:0/2:0:0:0/block/sda/sda1
++	 */
++	uint32_t tosser0, tosser1, tosser2;
++
++	/* ignore a bunch of stuff
++	 *    host4/port-4:0
++	 * or host4/port-4:0:0
++	 */
++	debug("searching for host4/");
++	rc = sscanf(current, "host%d/%n", scsi_host, &pos0);
++	debug("current:\"%s\" rc:%d pos0:%d\n", current+sz, rc, pos0);
++	if (rc != 1)
++	        return -1;
++	sz += pos0;
++	pos0 = 0;
++
++	/*
++	 * We might have this next:
++	 * port-2:0/expander-2:0/port-2:0:2/end_device-2:0:2/target2:0:0/2:0:0:0/block/sda/sda1
++	 * or:
++	 * port-2:0/end_device-2:0:2/target2:0:0/2:0:0:0/block/sda/sda1
++	 * or maybe (not sure):
++	 * port-2:0:2/end_device-2:0:2/target2:0:0/2:0:0:0/block/sda/sda1
++	 */
++	debug("searching for port-4:0 or port-4:0:0");
++	rc = sscanf(current+sz, "port-%d:%d%n:%d%n", &tosser0,
++	            &tosser1, &pos0, &tosser2, &pos1);
++	debug("current:\"%s\" rc:%d pos0:%d pos1:%d\n", current+sz, rc, pos0, pos1);
++	if (rc == 2 || rc == 3) {
++	        sz += pos0;
++	        pos0 = 0;
++	        if (local_port_id && rc == 2)
++	                *local_port_id = tosser1;
++	        if (remote_port_id && rc == 3)
++	                *remote_port_id = tosser2;
++
++	        if (current[sz] == '/')
++	                sz += 1;
++
++	        /*
++	         * We might have this next:
++	         * expander-2:0/port-2:0:2/end_device-2:0:2/target2:0:0/2:0:0:0/block/sda/sda1
++	         *                       ^ port id
++	         *                     ^ scsi target id
++	         *                   ^ host number
++	         *          ^ host number
++	         * We don't actually care about either number in expander-.../,
++	         * because they're replicated in all the other places.  We just need
++	         * to get past it.
++	         */
++	        debug("searching for expander-4:0/");
++	        rc = sscanf(current+sz, "expander-%d:%d/%n", &tosser0, &tosser1, &pos0);
++	        debug("current:\"%s\" rc:%d pos0:%d\n", current+sz, rc, pos0);
++	        if (rc == 2) {
++	                if (!remote_target_id) {
++	                        efi_error("Device is PHY is a remote target, but remote_target_id is NULL");
++	                        return -1;
++	                }
++	                *remote_target_id = tosser1;
++	                sz += pos0;
++	                pos0 = 0;
++
++	                /*
++	                 * if we have that, we should have a 3-part port next
++	                 */
++	                debug("searching for port-2:0:2/");
++	                rc = sscanf(current+sz, "port-%d:%d:%d/%n", &tosser0, &tosser1, &tosser2, &pos0);
++	                debug("current:\"%s\" rc:%d pos0:%d\n", current+sz, rc, pos0);
++	                if (rc != 3) {
++	                        efi_error("Couldn't parse port expander port string");
++	                        return -1;
++	                }
++	                sz += pos0;
++	        }
++	        pos0 = 0;
++
++	        /* next:
++	         *    /end_device-4:0
++	         * or /end_device-4:0:0
++	         * awesomely these are the exact same fields that go into port-blah,
++	         * but we don't care for now about any of them anyway.
++	         */
++	        debug("searching for end_device-4:0/ or end_device-4:0:0/");
++	        rc = sscanf(current + sz, "end_device-%d:%d%n", &tosser0, &tosser1, &pos0);
++	        debug("current:\"%s\" rc:%d pos0:%d\n", current+sz, rc, pos0);
++	        if (rc != 2)
++	                return -1;
++
++	        pos1 = 0;
++	        rc = sscanf(current + sz + pos0, ":%d%n", &tosser2, &pos1);
++	        if (rc != 0 && rc != 1)
++	                return -1;
++	        if (remote_port_id && rc == 1)
++	                *remote_port_id = tosser2;
++	        if (local_port_id && rc == 0)
++	                *local_port_id = tosser1;
++	        sz += pos0 + pos1;
++	        pos0 = pos1 = 0;
++
++	        if (current[sz] == '/')
++	                sz += 1;
++	} else if (rc != 0) {
++	        return -1;
++	}
++
++	/* now:
++	 * /target4:0:0/
++	 */
++	uint64_t tosser3;
++	debug("searching for target4:0:0/");
++	rc = sscanf(current + sz, "target%d:%d:%"PRIu64"/%n", &tosser0, &tosser1,
++	            &tosser3, &pos0);
++	debug("current:\"%s\" rc:%d pos0:%d\n", current+sz, rc, pos0);
++	if (rc != 3)
++	        return -1;
++	sz += pos0;
++	pos0 = 0;
++
++	/* now:
++	 * %d:%d:%d:%llu/
++	 */
++	debug("searching for 4:0:0:0/");
++	rc = sscanf(current + sz, "%d:%d:%d:%"PRIu64"/%n",
++	            scsi_bus, scsi_device, scsi_target, scsi_lun, &pos0);
++	debug("current:\"%s\" rc:%d pos0:%d\n", current+sz, rc, pos0);
++	if (rc != 4)
++	        return -1;
++	sz += pos0;
++
++	debug("returning %d", sz);
++	return sz;
+ }
+ 
+ static ssize_t
+ parse_scsi(struct device *dev, const char *current, const char *root UNUSED)
+ {
+-        uint32_t scsi_host, scsi_bus, scsi_device, scsi_target;
+-        uint64_t scsi_lun;
+-        ssize_t sz;
+-        int pos;
+-        int rc;
+-
+-        debug("entry");
+-
+-        debug("searching for ../../../0:0:0:0");
+-        rc = sscanf(dev->device, "../../../%d:%d:%d:%"PRIu64"%n",
+-                    &dev->scsi_info.scsi_bus,
+-                    &dev->scsi_info.scsi_device,
+-                    &dev->scsi_info.scsi_target,
+-                    &dev->scsi_info.scsi_lun,
+-                    &pos);
+-        debug("current:\"%s\" rc:%d pos:%d\n", dev->device, rc, pos);
+-        if (rc != 4)
+-                return 0;
+-
+-        sz = parse_scsi_link(current, &scsi_host,
+-                              &scsi_bus, &scsi_device,
+-                              &scsi_target, &scsi_lun,
+-                              NULL, NULL, NULL);
+-        if (sz < 0)
+-                return 0;
+-
+-        /*
+-         * SCSI disks can have up to 16 partitions, or 4 bits worth
+-         * and have one bit for the disk number.
+-         */
+-        if (dev->major == 8) {
+-                dev->interface_type = scsi;
+-                dev->disknum = (dev->minor >> 4);
+-                set_part(dev, dev->minor & 0xF);
+-        } else if (dev->major >= 65 && dev->major <= 71) {
+-                dev->interface_type = scsi;
+-                dev->disknum = 16*(dev->major-64) + (dev->minor >> 4);
+-                set_part(dev, dev->minor & 0xF);
+-        } else if (dev->major >= 128 && dev->major <= 135) {
+-                dev->interface_type = scsi;
+-                dev->disknum = 16*(dev->major-128) + (dev->minor >> 4);
+-                set_part(dev, dev->minor & 0xF);
+-        } else {
+-                efi_error("couldn't parse scsi major/minor");
+-                return -1;
+-        }
+-
+-        return sz;
++	uint32_t scsi_host, scsi_bus, scsi_device, scsi_target;
++	uint64_t scsi_lun;
++	ssize_t sz;
++	int pos;
++	int rc;
++
++	debug("entry");
++
++	debug("searching for ../../../0:0:0:0");
++	rc = sscanf(dev->device, "../../../%d:%d:%d:%"PRIu64"%n",
++	            &dev->scsi_info.scsi_bus,
++	            &dev->scsi_info.scsi_device,
++	            &dev->scsi_info.scsi_target,
++	            &dev->scsi_info.scsi_lun,
++	            &pos);
++	debug("current:\"%s\" rc:%d pos:%d\n", dev->device, rc, pos);
++	if (rc != 4)
++	        return 0;
++
++	sz = parse_scsi_link(current, &scsi_host,
++	                      &scsi_bus, &scsi_device,
++	                      &scsi_target, &scsi_lun,
++	                      NULL, NULL, NULL);
++	if (sz < 0)
++	        return 0;
++
++	/*
++	 * SCSI disks can have up to 16 partitions, or 4 bits worth
++	 * and have one bit for the disk number.
++	 */
++	if (dev->major == 8) {
++	        dev->interface_type = scsi;
++	        dev->disknum = (dev->minor >> 4);
++	        set_part(dev, dev->minor & 0xF);
++	} else if (dev->major >= 65 && dev->major <= 71) {
++	        dev->interface_type = scsi;
++	        dev->disknum = 16*(dev->major-64) + (dev->minor >> 4);
++	        set_part(dev, dev->minor & 0xF);
++	} else if (dev->major >= 128 && dev->major <= 135) {
++	        dev->interface_type = scsi;
++	        dev->disknum = 16*(dev->major-128) + (dev->minor >> 4);
++	        set_part(dev, dev->minor & 0xF);
++	} else {
++	        efi_error("couldn't parse scsi major/minor");
++	        return -1;
++	}
++
++	return sz;
+ }
+ 
+ static ssize_t
+ dp_create_scsi(struct device *dev,
+-               uint8_t *buf,  ssize_t size, ssize_t off)
++	       uint8_t *buf,  ssize_t size, ssize_t off)
+ {
+-        ssize_t sz = 0;
++	ssize_t sz = 0;
+ 
+-        debug("entry");
++	debug("entry");
+ 
+-        sz = efidp_make_scsi(buf + off, size ? size - off : 0,
+-                             dev->scsi_info.scsi_target,
+-                             dev->scsi_info.scsi_lun);
+-        if (sz < 0)
+-                efi_error("efidp_make_scsi() failed");
++	sz = efidp_make_scsi(buf + off, size ? size - off : 0,
++	                     dev->scsi_info.scsi_target,
++	                     dev->scsi_info.scsi_lun);
++	if (sz < 0)
++	        efi_error("efidp_make_scsi() failed");
+ 
+-        return sz;
++	return sz;
+ }
+ 
+ enum interface_type scsi_iftypes[] = { scsi, unknown };
+ 
+ struct dev_probe HIDDEN scsi_parser = {
+-        .name = "scsi",
+-        .iftypes = scsi_iftypes,
+-        .flags = DEV_PROVIDES_HD,
+-        .parse = parse_scsi,
+-        .create = dp_create_scsi,
++	.name = "scsi",
++	.iftypes = scsi_iftypes,
++	.flags = DEV_PROVIDES_HD,
++	.parse = parse_scsi,
++	.create = dp_create_scsi,
+ };
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/linux-soc-root.c b/src/linux-soc-root.c
+index cbb4779b6fb..27633d69c97 100644
+--- a/src/linux-soc-root.c
++++ b/src/linux-soc-root.c
+@@ -40,26 +40,28 @@
+ static ssize_t
+ parse_soc_root(struct device *dev UNUSED, const char *current, const char *root UNUSED)
+ {
+-        int rc;
+-        int pos = 0;
+-        const char *devpart = current;
++	int rc;
++	int pos = 0;
++	const char *devpart = current;
+ 
+-        debug("entry");
++	debug("entry");
+ 
+-        rc = sscanf(devpart, "../../devices/platform/soc/%*[^/]/%n", &pos);
+-        if (rc != 0)
+-                return 0;
+-        devpart += pos;
+-        debug("new position is \"%s\"", devpart);
++	rc = sscanf(devpart, "../../devices/platform/soc/%*[^/]/%n", &pos);
++	if (rc != 0)
++	        return 0;
++	devpart += pos;
++	debug("new position is \"%s\"", devpart);
+ 
+-        return devpart - current;
++	return devpart - current;
+ }
+ 
+ enum interface_type soc_root_iftypes[] = { soc_root, unknown };
+ 
+ struct dev_probe HIDDEN soc_root_parser = {
+-        .name = "soc_root",
+-        .iftypes = soc_root_iftypes,
+-        .flags = DEV_ABBREV_ONLY|DEV_PROVIDES_ROOT,
+-        .parse = parse_soc_root,
++	.name = "soc_root",
++	.iftypes = soc_root_iftypes,
++	.flags = DEV_ABBREV_ONLY|DEV_PROVIDES_ROOT,
++	.parse = parse_soc_root,
+ };
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/linux-virtblk.c b/src/linux-virtblk.c
+index fe6eb873a37..891c262fe05 100644
+--- a/src/linux-virtblk.c
++++ b/src/linux-virtblk.c
+@@ -47,33 +47,34 @@
+ static ssize_t
+ parse_virtblk(struct device *dev, const char *current, const char *root UNUSED)
+ {
+-        uint32_t tosser;
+-        int pos = 0;
+-        int rc;
++	uint32_t tosser;
++	int pos = 0;
++	int rc;
+ 
+-        debug("entry");
++	debug("entry");
+ 
+-        debug("searching for virtio0/");
+-        rc = sscanf(current, "virtio%x/%n", &tosser, &pos);
+-        debug("current:\"%s\" rc:%d pos:%d\n", current, rc, pos);
+-        /*
+-         * If we couldn't find virtioX/ then it isn't a virtio device.
+-         */
+-        if (rc < 1)
+-                return 0;
++	debug("searching for virtio0/");
++	rc = sscanf(current, "virtio%x/%n", &tosser, &pos);
++	debug("current:\"%s\" rc:%d pos:%d\n", current, rc, pos);
++	/*
++	 * If we couldn't find virtioX/ then it isn't a virtio device.
++	 */
++	if (rc < 1)
++	        return 0;
+ 
+-        dev->interface_type = virtblk;
++	dev->interface_type = virtblk;
+ 
+-        return pos;
++	return pos;
+ }
+ 
+ enum interface_type virtblk_iftypes[] = { virtblk, unknown };
+ 
+ struct dev_probe HIDDEN virtblk_parser = {
+-        .name = "virtio block",
+-        .iftypes = virtblk_iftypes,
+-        .flags = DEV_PROVIDES_HD,
+-        .parse = parse_virtblk,
+-        .create = NULL,
++	.name = "virtio block",
++	.iftypes = virtblk_iftypes,
++	.flags = DEV_PROVIDES_HD,
++	.parse = parse_virtblk,
++	.create = NULL,
+ };
+ 
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/linux.c b/src/linux.c
+index 4e102da5e24..45b1ee2d96f 100644
+--- a/src/linux.c
++++ b/src/linux.c
+@@ -46,568 +46,568 @@
+ int HIDDEN
+ find_parent_devpath(const char * const child, char **parent)
+ {
+-        int ret;
+-        char *node;
+-        char *linkbuf;
+-
+-        /* strip leading /dev/ */
+-        node = strrchr(child, '/');
+-        if (!node)
+-                return -1;
+-        node++;
+-
+-        /* look up full path symlink */
+-        ret = sysfs_readlink(&linkbuf, "class/block/%s", node);
+-        if (ret < 0 || !linkbuf)
+-                return ret;
+-
+-        /* strip child */
+-        node = strrchr(linkbuf, '/');
+-        if (!node)
+-                return -1;
+-        *node = '\0';
+-
+-        /* read parent */
+-        node = strrchr(linkbuf, '/');
+-        if (!node)
+-                return -1;
+-        *node = '\0';
+-        node++;
+-
+-        /* write out new path */
+-        ret = asprintf(parent, "/dev/%s", node);
+-        if (ret < 0)
+-                return ret;
+-
+-        return 0;
++	int ret;
++	char *node;
++	char *linkbuf;
++
++	/* strip leading /dev/ */
++	node = strrchr(child, '/');
++	if (!node)
++	        return -1;
++	node++;
++
++	/* look up full path symlink */
++	ret = sysfs_readlink(&linkbuf, "class/block/%s", node);
++	if (ret < 0 || !linkbuf)
++	        return ret;
++
++	/* strip child */
++	node = strrchr(linkbuf, '/');
++	if (!node)
++	        return -1;
++	*node = '\0';
++
++	/* read parent */
++	node = strrchr(linkbuf, '/');
++	if (!node)
++	        return -1;
++	*node = '\0';
++	node++;
++
++	/* write out new path */
++	ret = asprintf(parent, "/dev/%s", node);
++	if (ret < 0)
++	        return ret;
++
++	return 0;
+ }
+ 
+ int HIDDEN
+ set_part_name(struct device *dev, const char * const fmt, ...)
+ {
+-        ssize_t rc;
+-        va_list ap;
+-        int error;
+-
+-        if (dev->part <= 0)
+-                return 0;
+-
+-        va_start(ap, fmt);
+-        rc = vasprintf(&dev->part_name, fmt, ap);
+-        error = errno;
+-        va_end(ap);
+-        errno = error;
+-        if (rc < 0)
+-                efi_error("could not allocate memory");
+-
+-        return rc;
++	ssize_t rc;
++	va_list ap;
++	int error;
++
++	if (dev->part <= 0)
++	        return 0;
++
++	va_start(ap, fmt);
++	rc = vasprintf(&dev->part_name, fmt, ap);
++	error = errno;
++	va_end(ap);
++	errno = error;
++	if (rc < 0)
++	        efi_error("could not allocate memory");
++
++	return rc;
+ }
+ 
+ int HIDDEN
+ reset_part_name(struct device *dev)
+ {
+-        char *part = NULL;
+-        int rc;
+-
+-        if (dev->part_name) {
+-                free(dev->part_name);
+-                dev->part_name = NULL;
+-        }
+-
+-        if (dev->part < 1)
+-                return 0;
+-
+-        if (dev->n_probes > 0 &&
+-            dev->probes[dev->n_probes-1] &&
+-            dev->probes[dev->n_probes-1]->make_part_name) {
+-                part = dev->probes[dev->n_probes]->make_part_name(dev);
+-                dev->part_name = part;
+-                rc = 0;
+-        } else {
+-                rc = asprintf(&dev->part_name, "%s%d",
+-                              dev->disk_name, dev->part);
+-                if (rc < 0)
+-                        efi_error("could not allocate memory");
+-        }
+-        return rc;
++	char *part = NULL;
++	int rc;
++
++	if (dev->part_name) {
++	        free(dev->part_name);
++	        dev->part_name = NULL;
++	}
++
++	if (dev->part < 1)
++	        return 0;
++
++	if (dev->n_probes > 0 &&
++	    dev->probes[dev->n_probes-1] &&
++	    dev->probes[dev->n_probes-1]->make_part_name) {
++	        part = dev->probes[dev->n_probes]->make_part_name(dev);
++	        dev->part_name = part;
++	        rc = 0;
++	} else {
++	        rc = asprintf(&dev->part_name, "%s%d",
++	                      dev->disk_name, dev->part);
++	        if (rc < 0)
++	                efi_error("could not allocate memory");
++	}
++	return rc;
+ }
+ 
+ int HIDDEN
+ set_part(struct device *dev, int value)
+ {
+-        int rc;
++	int rc;
+ 
+-        if (dev->part == value)
+-                return 0;
++	if (dev->part == value)
++	        return 0;
+ 
+-        dev->part = value;
+-        rc = reset_part_name(dev);
+-        if (rc < 0)
+-                efi_error("reset_part_name() failed");
++	dev->part = value;
++	rc = reset_part_name(dev);
++	if (rc < 0)
++	        efi_error("reset_part_name() failed");
+ 
+-        return rc;
++	return rc;
+ }
+ 
+ int HIDDEN
+ set_disk_name(struct device *dev, const char * const fmt, ...)
+ {
+-        ssize_t rc;
+-        va_list ap;
+-        int error;
+-
+-        va_start(ap, fmt);
+-        rc = vasprintf(&dev->disk_name, fmt, ap);
+-        error = errno;
+-        va_end(ap);
+-        errno = error;
+-        if (rc < 0)
+-                efi_error("could not allocate memory");
+-
+-        return rc;
++	ssize_t rc;
++	va_list ap;
++	int error;
++
++	va_start(ap, fmt);
++	rc = vasprintf(&dev->disk_name, fmt, ap);
++	error = errno;
++	va_end(ap);
++	errno = error;
++	if (rc < 0)
++	        efi_error("could not allocate memory");
++
++	return rc;
+ }
+ 
+ int HIDDEN
+ set_disk_and_part_name(struct device *dev)
+ {
+-        /*
+-         * results are like such:
+-         * maj:min -> ../../devices/pci$PCI_STUFF/$BLOCKDEV_STUFF/block/$DISK/$PART
+-         */
+-
+-        char *ultimate = pathseg(dev->link, -1);
+-        char *penultimate = pathseg(dev->link, -2);
+-        char *approximate = pathseg(dev->link, -3);
+-        char *proximate = pathseg(dev->link, -4);
+-
+-        errno = 0;
+-        debug("dev->disk_name:%p dev->part_name:%p", dev->disk_name, dev->part_name);
+-        debug("dev->part:%d", dev->part);
+-        debug("ultimate:\"%s\"", ultimate ? : "");
+-        debug("penultimate:\"%s\"", penultimate ? : "");
+-        debug("approximate:\"%s\"", approximate ? : "");
+-        debug("proximate:\"%s\"", proximate ? : "");
+-
+-        if (ultimate && penultimate &&
+-            ((proximate && !strcmp(proximate, "nvme")) ||
+-             (approximate && !strcmp(approximate, "block")))) {
+-                /*
+-                 * 259:1 -> ../../devices/pci0000:00/0000:00:1d.0/0000:05:00.0/nvme/nvme0/nvme0n1/nvme0n1p1
+-                 * 8:1 -> ../../devices/pci0000:00/0000:00:17.0/ata2/host1/target1:0:0/1:0:0:0/block/sda/sda1
+-                 * 8:33 -> ../../devices/pci0000:00/0000:00:01.0/0000:01:00.0/host4/port-4:0/end_device-4:0/target4:0:0/4:0:0:0/block/sdc/sdc1
+-                 * 252:1 -> ../../devices/pci0000:00/0000:00:07.0/virtio2/block/vda/vda1
+-                 * 259:3 -> ../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region11/btt11.0/block/pmem11s/pmem11s1
+-                 */
+-                set_disk_name(dev, "%s", penultimate);
+-                set_part_name(dev, "%s", ultimate);
+-                debug("disk:%s part:%s", penultimate, ultimate);
+-        } else if (ultimate && approximate && !strcmp(approximate, "nvme")) {
+-                /*
+-                 * 259:0 -> ../../devices/pci0000:00/0000:00:1d.0/0000:05:00.0/nvme/nvme0/nvme0n1
+-                 */
+-                set_disk_name(dev, "%s", ultimate);
+-                set_part_name(dev, "%sp%d", ultimate, dev->part);
+-                debug("disk:%s part:%sp%d", ultimate, ultimate, dev->part);
+-        } else if (ultimate && penultimate && !strcmp(penultimate, "block")) {
+-                /*
+-                 * 253:0 -> ../../devices/virtual/block/dm-0 (... I guess)
+-                 * 8:0 -> ../../devices/pci0000:00/0000:00:17.0/ata2/host1/target1:0:0/1:0:0:0/block/sda
+-                 * 11:0 -> ../../devices/pci0000:00/0000:00:11.5/ata3/host2/target2:0:0/2:0:0:0/block/sr0
+-                 * 8:32 -> ../../devices/pci0000:00/0000:00:01.0/0000:01:00.0/host4/port-4:0/end_device-4:0/target4:0:0/4:0:0:0/block/sdc
+-                 * 252:0 -> ../../devices/pci0000:00/0000:00:07.0/virtio2/block/vda
+-                 * 259:0 -> ../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region9/btt9.0/block/pmem9s
+-                 * 259:1 -> ../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region11/btt11.0/block/pmem11s
+-                 */
+-                set_disk_name(dev, "%s", ultimate);
+-                set_part_name(dev, "%s%d", ultimate, dev->part);
+-                debug("disk:%s part:%s%d", ultimate, ultimate, dev->part);
+-        } else if (ultimate && approximate && !strcmp(approximate, "mtd")) {
+-                /*
+-                 * 31:0 -> ../../devices/platform/1e000000.palmbus/1e000b00.spi/spi_master/spi32766/spi32766.0/mtd/mtd0/mtdblock0
+-                 */
+-                set_disk_name(dev, "%s", ultimate);
+-                debug("disk:%s", ultimate);
+-        }
+-
+-        return 0;
++	/*
++	 * results are like such:
++	 * maj:min -> ../../devices/pci$PCI_STUFF/$BLOCKDEV_STUFF/block/$DISK/$PART
++	 */
++
++	char *ultimate = pathseg(dev->link, -1);
++	char *penultimate = pathseg(dev->link, -2);
++	char *approximate = pathseg(dev->link, -3);
++	char *proximate = pathseg(dev->link, -4);
++
++	errno = 0;
++	debug("dev->disk_name:%p dev->part_name:%p", dev->disk_name, dev->part_name);
++	debug("dev->part:%d", dev->part);
++	debug("ultimate:\"%s\"", ultimate ? : "");
++	debug("penultimate:\"%s\"", penultimate ? : "");
++	debug("approximate:\"%s\"", approximate ? : "");
++	debug("proximate:\"%s\"", proximate ? : "");
++
++	if (ultimate && penultimate &&
++	    ((proximate && !strcmp(proximate, "nvme")) ||
++	     (approximate && !strcmp(approximate, "block")))) {
++	        /*
++	         * 259:1 -> ../../devices/pci0000:00/0000:00:1d.0/0000:05:00.0/nvme/nvme0/nvme0n1/nvme0n1p1
++	         * 8:1 -> ../../devices/pci0000:00/0000:00:17.0/ata2/host1/target1:0:0/1:0:0:0/block/sda/sda1
++	         * 8:33 -> ../../devices/pci0000:00/0000:00:01.0/0000:01:00.0/host4/port-4:0/end_device-4:0/target4:0:0/4:0:0:0/block/sdc/sdc1
++	         * 252:1 -> ../../devices/pci0000:00/0000:00:07.0/virtio2/block/vda/vda1
++	         * 259:3 -> ../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region11/btt11.0/block/pmem11s/pmem11s1
++	         */
++	        set_disk_name(dev, "%s", penultimate);
++	        set_part_name(dev, "%s", ultimate);
++	        debug("disk:%s part:%s", penultimate, ultimate);
++	} else if (ultimate && approximate && !strcmp(approximate, "nvme")) {
++	        /*
++	         * 259:0 -> ../../devices/pci0000:00/0000:00:1d.0/0000:05:00.0/nvme/nvme0/nvme0n1
++	         */
++	        set_disk_name(dev, "%s", ultimate);
++	        set_part_name(dev, "%sp%d", ultimate, dev->part);
++	        debug("disk:%s part:%sp%d", ultimate, ultimate, dev->part);
++	} else if (ultimate && penultimate && !strcmp(penultimate, "block")) {
++	        /*
++	         * 253:0 -> ../../devices/virtual/block/dm-0 (... I guess)
++	         * 8:0 -> ../../devices/pci0000:00/0000:00:17.0/ata2/host1/target1:0:0/1:0:0:0/block/sda
++	         * 11:0 -> ../../devices/pci0000:00/0000:00:11.5/ata3/host2/target2:0:0/2:0:0:0/block/sr0
++	         * 8:32 -> ../../devices/pci0000:00/0000:00:01.0/0000:01:00.0/host4/port-4:0/end_device-4:0/target4:0:0/4:0:0:0/block/sdc
++	         * 252:0 -> ../../devices/pci0000:00/0000:00:07.0/virtio2/block/vda
++	         * 259:0 -> ../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region9/btt9.0/block/pmem9s
++	         * 259:1 -> ../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region11/btt11.0/block/pmem11s
++	         */
++	        set_disk_name(dev, "%s", ultimate);
++	        set_part_name(dev, "%s%d", ultimate, dev->part);
++	        debug("disk:%s part:%s%d", ultimate, ultimate, dev->part);
++	} else if (ultimate && approximate && !strcmp(approximate, "mtd")) {
++	        /*
++	         * 31:0 -> ../../devices/platform/1e000000.palmbus/1e000b00.spi/spi_master/spi32766/spi32766.0/mtd/mtd0/mtdblock0
++	         */
++	        set_disk_name(dev, "%s", ultimate);
++	        debug("disk:%s", ultimate);
++	}
++
++	return 0;
+ }
+ 
+ static struct dev_probe *dev_probes[] = {
+-        /*
+-         * pmem needs to be before PCI, so if it provides root it'll
+-         * be found first.
+-         */
+-        &pmem_parser,
+-        &acpi_root_parser,
+-        &pci_root_parser,
+-        &soc_root_parser,
+-        &pci_parser,
+-        &virtblk_parser,
+-        &sas_parser,
+-        &sata_parser,
+-        &nvme_parser,
+-        &ata_parser,
+-        &scsi_parser,
+-        &i2o_parser,
+-        &emmc_parser,
+-        NULL
++	/*
++	 * pmem needs to be before PCI, so if it provides root it'll
++	 * be found first.
++	 */
++	&pmem_parser,
++	&acpi_root_parser,
++	&pci_root_parser,
++	&soc_root_parser,
++	&pci_parser,
++	&virtblk_parser,
++	&sas_parser,
++	&sata_parser,
++	&nvme_parser,
++	&ata_parser,
++	&scsi_parser,
++	&i2o_parser,
++	&emmc_parser,
++	NULL
+ };
+ 
+ void HIDDEN
+ device_free(struct device *dev)
+ {
+-        if (!dev)
+-                return;
+-        if (dev->link)
+-                free(dev->link);
+-
+-        if (dev->device)
+-                free(dev->device);
+-
+-        if (dev->driver)
+-                free(dev->driver);
+-
+-        if (dev->probes)
+-                free(dev->probes);
+-
+-        if (dev->acpi_root.acpi_hid_str)
+-                free(dev->acpi_root.acpi_hid_str);
+-        if (dev->acpi_root.acpi_uid_str)
+-                free(dev->acpi_root.acpi_uid_str);
+-        if (dev->acpi_root.acpi_cid_str)
+-                free(dev->acpi_root.acpi_cid_str);
+-
+-        if (dev->interface_type == network) {
+-                if (dev->ifname)
+-                        free(dev->ifname);
+-        } else {
+-                if (dev->disk_name)
+-                        free(dev->disk_name);
+-                if (dev->part_name)
+-                        free(dev->part_name);
+-        }
+-
+-        for (unsigned int i = 0; i < dev->n_pci_devs; i++)
+-                if (dev->pci_dev[i].driverlink)
+-                        free(dev->pci_dev[i].driverlink);
+-
+-        if (dev->pci_dev)
+-                free(dev->pci_dev);
+-
+-        memset(dev, 0, sizeof(*dev));
+-        free(dev);
++	if (!dev)
++	        return;
++	if (dev->link)
++	        free(dev->link);
++
++	if (dev->device)
++	        free(dev->device);
++
++	if (dev->driver)
++	        free(dev->driver);
++
++	if (dev->probes)
++	        free(dev->probes);
++
++	if (dev->acpi_root.acpi_hid_str)
++	        free(dev->acpi_root.acpi_hid_str);
++	if (dev->acpi_root.acpi_uid_str)
++	        free(dev->acpi_root.acpi_uid_str);
++	if (dev->acpi_root.acpi_cid_str)
++	        free(dev->acpi_root.acpi_cid_str);
++
++	if (dev->interface_type == network) {
++	        if (dev->ifname)
++	                free(dev->ifname);
++	} else {
++	        if (dev->disk_name)
++	                free(dev->disk_name);
++	        if (dev->part_name)
++	                free(dev->part_name);
++	}
++
++	for (unsigned int i = 0; i < dev->n_pci_devs; i++)
++	        if (dev->pci_dev[i].driverlink)
++	                free(dev->pci_dev[i].driverlink);
++
++	if (dev->pci_dev)
++	        free(dev->pci_dev);
++
++	memset(dev, 0, sizeof(*dev));
++	free(dev);
+ }
+ 
+ struct device HIDDEN
+ *device_get(int fd, int partition)
+ {
+-        struct device *dev;
+-        char *linkbuf = NULL, *tmpbuf = NULL;
+-        int i = 0;
+-        unsigned int n = 0;
+-        int rc;
+-
+-        size_t nmemb = (sizeof(dev_probes)
+-                        / sizeof(dev_probes[0])) + 1;
+-
+-        dev = calloc(1, sizeof(*dev));
+-        if (!dev) {
+-                efi_error("could not allocate %zd bytes", sizeof(*dev));
+-                return NULL;
+-        }
+-
+-        dev->part = partition;
+-        debug("partition:%d dev->part:%d", partition, dev->part);
+-        dev->probes = calloc(nmemb, sizeof(struct dev_probe *));
+-        if (!dev->probes) {
+-                efi_error("could not allocate %zd bytes",
+-                          nmemb * sizeof(struct dev_probe *));
+-                goto err;
+-        }
+-
+-        rc = fstat(fd, &dev->stat);
+-        if (rc < 0) {
+-                efi_error("fstat(%d) failed", fd);
+-                goto err;
+-        }
+-
+-        dev->pci_root.pci_domain = 0xffff;
+-        dev->pci_root.pci_bus = 0xff;
+-
+-        if (S_ISBLK(dev->stat.st_mode)) {
+-                dev->major = major(dev->stat.st_rdev);
+-                dev->minor = minor(dev->stat.st_rdev);
+-        } else if (S_ISREG(dev->stat.st_mode)) {
+-                dev->major = major(dev->stat.st_dev);
+-                dev->minor = minor(dev->stat.st_dev);
+-        } else {
+-                efi_error("device is not a block device or regular file");
+-                goto err;
+-        }
+-
+-        rc = sysfs_readlink(&linkbuf, "dev/block/%"PRIu64":%"PRIu32,
+-                            dev->major, dev->minor);
+-        if (rc < 0 || !linkbuf) {
+-                efi_error("readlink of /sys/dev/block/%"PRIu64":%"PRIu32" failed",
+-                          dev->major, dev->minor);
+-                goto err;
+-        }
+-
+-        dev->link = strdup(linkbuf);
+-        if (!dev->link) {
+-                efi_error("strdup(\"%s\") failed", linkbuf);
+-                goto err;
+-        }
+-        debug("dev->link: %s", dev->link);
+-
+-        if (dev->part == -1) {
+-                rc = read_sysfs_file(&tmpbuf, "dev/block/%s/partition", dev->link);
+-                if (rc < 0 || !tmpbuf) {
+-                        efi_error("device has no /partition node; not a partition");
+-                } else {
+-                        rc = sscanf((char *)tmpbuf, "%d\n", &dev->part);
+-                        if (rc != 1)
+-                                efi_error("couldn't parse partition number for %s", tmpbuf);
+-                }
+-        }
+-
+-        rc = set_disk_and_part_name(dev);
+-        if (rc < 0) {
+-                efi_error("could not set disk and partition names");
+-                goto err;
+-        }
+-        debug("dev->disk_name: %s", dev->disk_name);
+-        debug("dev->part_name: %s", dev->part_name);
+-
+-        rc = sysfs_readlink(&tmpbuf, "block/%s/device", dev->disk_name);
+-        if (rc < 0 || !tmpbuf) {
+-                debug("readlink of /sys/block/%s/device failed",
+-                          dev->disk_name);
+-
+-                dev->device = strdup("");
+-        } else {
+-                dev->device = strdup(tmpbuf);
+-        }
+-
+-        if (!dev->device) {
+-                efi_error("strdup(\"%s\") failed", tmpbuf);
+-                goto err;
+-        }
+-
+-        if (dev->device[0] != 0) {
+-                rc = sysfs_readlink(&tmpbuf, "block/%s/device/driver", dev->disk_name);
+-                if (rc < 0 || !tmpbuf) {
+-                        if (errno == ENOENT) {
+-                                /*
+-                                 * nvme, for example, will have nvme0n1/device point
+-                                 * at nvme0, and we need to look for device/driver
+-                                 * there.
+-                                 */
+-                                rc = sysfs_readlink(&tmpbuf,
+-                                                    "block/%s/device/device/driver",
+-                                                    dev->disk_name);
+-                                if (rc >= 0 && tmpbuf)
+-                                        efi_error_pop();
+-                        }
+-                        if (rc < 0 || !tmpbuf) {
+-                                efi_error("readlink of /sys/block/%s/device/driver failed",
+-                                          dev->disk_name);
+-                                goto err;
+-                        }
+-                }
+-
+-                linkbuf = pathseg(tmpbuf, -1);
+-                if (!linkbuf) {
+-                        efi_error("could not get segment -1 of \"%s\"", tmpbuf);
+-                        goto err;
+-                }
+-
+-                dev->driver = strdup(linkbuf);
+-        } else {
+-                dev->driver = strdup("");
+-        }
+-
+-        if (!dev->driver) {
+-                efi_error("strdup(\"%s\") failed", linkbuf);
+-                goto err;
+-        }
+-
+-        const char *current = dev->link;
+-        bool needs_root = true;
+-        int last_successful_probe = -1;
+-
+-        debug("searching for device nodes in %s", dev->link);
+-        for (i = 0;
+-             dev_probes[i] && dev_probes[i]->parse && *current;
+-             i++) {
+-                struct dev_probe *probe = dev_probes[i];
+-                int pos;
+-
+-                if (!needs_root &&
+-                    (probe->flags & DEV_PROVIDES_ROOT)) {
+-                        debug("not testing %s because flags is 0x%x",
+-                              probe->name, probe->flags);
+-                        continue;
+-                }
+-
+-                debug("trying %s", probe->name);
+-                pos = probe->parse(dev, current, dev->link);
+-                if (pos < 0) {
+-                        efi_error("parsing %s failed", probe->name);
+-                        goto err;
+-                } else if (pos > 0) {
+-                        debug("%s matched %s", probe->name, current);
+-                        dev->flags |= probe->flags;
+-
+-                        if (probe->flags & DEV_PROVIDES_HD ||
+-                            probe->flags & DEV_PROVIDES_ROOT ||
+-                            probe->flags & DEV_ABBREV_ONLY)
+-                                needs_root = false;
+-
+-                        dev->probes[n++] = dev_probes[i];
+-                        current += pos;
+-                        debug("current:%s", current);
+-                        last_successful_probe = i;
+-
+-                        if (!*current || !strncmp(current, "block/", 6))
+-                                break;
+-
+-                        continue;
+-                }
+-
+-                debug("dev_probes[i+1]: %p dev->interface_type: %d\n",
+-                      dev_probes[i+1], dev->interface_type);
+-                if (dev_probes[i+1] == NULL && dev->interface_type == unknown) {
+-                        pos = 0;
+-                        rc = sscanf(current, "%*[^/]/%n", &pos);
+-                        if (rc < 0) {
++	struct device *dev;
++	char *linkbuf = NULL, *tmpbuf = NULL;
++	int i = 0;
++	unsigned int n = 0;
++	int rc;
++
++	size_t nmemb = (sizeof(dev_probes)
++	                / sizeof(dev_probes[0])) + 1;
++
++	dev = calloc(1, sizeof(*dev));
++	if (!dev) {
++	        efi_error("could not allocate %zd bytes", sizeof(*dev));
++	        return NULL;
++	}
++
++	dev->part = partition;
++	debug("partition:%d dev->part:%d", partition, dev->part);
++	dev->probes = calloc(nmemb, sizeof(struct dev_probe *));
++	if (!dev->probes) {
++	        efi_error("could not allocate %zd bytes",
++	                  nmemb * sizeof(struct dev_probe *));
++	        goto err;
++	}
++
++	rc = fstat(fd, &dev->stat);
++	if (rc < 0) {
++	        efi_error("fstat(%d) failed", fd);
++	        goto err;
++	}
++
++	dev->pci_root.pci_domain = 0xffff;
++	dev->pci_root.pci_bus = 0xff;
++
++	if (S_ISBLK(dev->stat.st_mode)) {
++	        dev->major = major(dev->stat.st_rdev);
++	        dev->minor = minor(dev->stat.st_rdev);
++	} else if (S_ISREG(dev->stat.st_mode)) {
++	        dev->major = major(dev->stat.st_dev);
++	        dev->minor = minor(dev->stat.st_dev);
++	} else {
++	        efi_error("device is not a block device or regular file");
++	        goto err;
++	}
++
++	rc = sysfs_readlink(&linkbuf, "dev/block/%"PRIu64":%"PRIu32,
++	                    dev->major, dev->minor);
++	if (rc < 0 || !linkbuf) {
++	        efi_error("readlink of /sys/dev/block/%"PRIu64":%"PRIu32" failed",
++	                  dev->major, dev->minor);
++	        goto err;
++	}
++
++	dev->link = strdup(linkbuf);
++	if (!dev->link) {
++	        efi_error("strdup(\"%s\") failed", linkbuf);
++	        goto err;
++	}
++	debug("dev->link: %s", dev->link);
++
++	if (dev->part == -1) {
++	        rc = read_sysfs_file(&tmpbuf, "dev/block/%s/partition", dev->link);
++	        if (rc < 0 || !tmpbuf) {
++	                efi_error("device has no /partition node; not a partition");
++	        } else {
++	                rc = sscanf((char *)tmpbuf, "%d\n", &dev->part);
++	                if (rc != 1)
++	                        efi_error("couldn't parse partition number for %s", tmpbuf);
++	        }
++	}
++
++	rc = set_disk_and_part_name(dev);
++	if (rc < 0) {
++	        efi_error("could not set disk and partition names");
++	        goto err;
++	}
++	debug("dev->disk_name: %s", dev->disk_name);
++	debug("dev->part_name: %s", dev->part_name);
++
++	rc = sysfs_readlink(&tmpbuf, "block/%s/device", dev->disk_name);
++	if (rc < 0 || !tmpbuf) {
++	        debug("readlink of /sys/block/%s/device failed",
++	                  dev->disk_name);
++
++	        dev->device = strdup("");
++	} else {
++	        dev->device = strdup(tmpbuf);
++	}
++
++	if (!dev->device) {
++	        efi_error("strdup(\"%s\") failed", tmpbuf);
++	        goto err;
++	}
++
++	if (dev->device[0] != 0) {
++	        rc = sysfs_readlink(&tmpbuf, "block/%s/device/driver", dev->disk_name);
++	        if (rc < 0 || !tmpbuf) {
++	                if (errno == ENOENT) {
++	                        /*
++	                         * nvme, for example, will have nvme0n1/device point
++	                         * at nvme0, and we need to look for device/driver
++	                         * there.
++	                         */
++	                        rc = sysfs_readlink(&tmpbuf,
++	                                            "block/%s/device/device/driver",
++	                                            dev->disk_name);
++	                        if (rc >= 0 && tmpbuf)
++	                                efi_error_pop();
++	                }
++	                if (rc < 0 || !tmpbuf) {
++	                        efi_error("readlink of /sys/block/%s/device/driver failed",
++	                                  dev->disk_name);
++	                        goto err;
++	                }
++	        }
++
++	        linkbuf = pathseg(tmpbuf, -1);
++	        if (!linkbuf) {
++	                efi_error("could not get segment -1 of \"%s\"", tmpbuf);
++	                goto err;
++	        }
++
++	        dev->driver = strdup(linkbuf);
++	} else {
++	        dev->driver = strdup("");
++	}
++
++	if (!dev->driver) {
++	        efi_error("strdup(\"%s\") failed", linkbuf);
++	        goto err;
++	}
++
++	const char *current = dev->link;
++	bool needs_root = true;
++	int last_successful_probe = -1;
++
++	debug("searching for device nodes in %s", dev->link);
++	for (i = 0;
++	     dev_probes[i] && dev_probes[i]->parse && *current;
++	     i++) {
++	        struct dev_probe *probe = dev_probes[i];
++	        int pos;
++
++	        if (!needs_root &&
++	            (probe->flags & DEV_PROVIDES_ROOT)) {
++	                debug("not testing %s because flags is 0x%x",
++	                      probe->name, probe->flags);
++	                continue;
++	        }
++
++	        debug("trying %s", probe->name);
++	        pos = probe->parse(dev, current, dev->link);
++	        if (pos < 0) {
++	                efi_error("parsing %s failed", probe->name);
++	                goto err;
++	        } else if (pos > 0) {
++	                debug("%s matched %s", probe->name, current);
++	                dev->flags |= probe->flags;
++
++	                if (probe->flags & DEV_PROVIDES_HD ||
++	                    probe->flags & DEV_PROVIDES_ROOT ||
++	                    probe->flags & DEV_ABBREV_ONLY)
++	                        needs_root = false;
++
++	                dev->probes[n++] = dev_probes[i];
++	                current += pos;
++	                debug("current:%s", current);
++	                last_successful_probe = i;
++
++	                if (!*current || !strncmp(current, "block/", 6))
++	                        break;
++
++	                continue;
++	        }
++
++	        debug("dev_probes[i+1]: %p dev->interface_type: %d\n",
++	              dev_probes[i+1], dev->interface_type);
++	        if (dev_probes[i+1] == NULL && dev->interface_type == unknown) {
++	                pos = 0;
++	                rc = sscanf(current, "%*[^/]/%n", &pos);
++	                if (rc < 0) {
+ slash_err:
+-                                efi_error("Cannot parse device link segment \"%s\"", current);
+-                                goto err;
+-                        }
+-
+-                        while (current[pos] == '/')
+-                                pos += 1;
+-
+-                        if (!current[pos])
+-                                goto slash_err;
+-
+-                        debug("Cannot parse device link segment \"%s\"", current);
+-                        debug("Skipping to \"%s\"", current + pos);
+-                        debug("This means we can only create abbreviated paths");
+-                        dev->flags |= DEV_ABBREV_ONLY;
+-                        i = last_successful_probe;
+-                        current += pos;
+-
+-                        if (!*current || !strncmp(current, "block/", 6))
+-                                break;
+-                }
+-        }
+-
+-        if (dev->interface_type == unknown &&
+-            !(dev->flags & DEV_ABBREV_ONLY) &&
+-            !strcmp(current, "block/")) {
+-                efi_error("unknown storage interface");
+-                errno = ENOSYS;
+-                goto err;
+-        }
+-
+-        return dev;
++	                        efi_error("Cannot parse device link segment \"%s\"", current);
++	                        goto err;
++	                }
++
++	                while (current[pos] == '/')
++	                        pos += 1;
++
++	                if (!current[pos])
++	                        goto slash_err;
++
++	                debug("Cannot parse device link segment \"%s\"", current);
++	                debug("Skipping to \"%s\"", current + pos);
++	                debug("This means we can only create abbreviated paths");
++	                dev->flags |= DEV_ABBREV_ONLY;
++	                i = last_successful_probe;
++	                current += pos;
++
++	                if (!*current || !strncmp(current, "block/", 6))
++	                        break;
++	        }
++	}
++
++	if (dev->interface_type == unknown &&
++	    !(dev->flags & DEV_ABBREV_ONLY) &&
++	    !strcmp(current, "block/")) {
++	        efi_error("unknown storage interface");
++	        errno = ENOSYS;
++	        goto err;
++	}
++
++	return dev;
+ err:
+-        device_free(dev);
+-        return NULL;
++	device_free(dev);
++	return NULL;
+ }
+ 
+ int HIDDEN
+ make_blockdev_path(uint8_t *buf, ssize_t size, struct device *dev)
+ {
+-        ssize_t off = 0;
++	ssize_t off = 0;
+ 
+-        debug("entry buf:%p size:%zd", buf, size);
++	debug("entry buf:%p size:%zd", buf, size);
+ 
+-        for (unsigned int i = 0; dev->probes[i] &&
+-                                 dev->probes[i]->parse; i++) {
+-                struct dev_probe *probe = dev->probes[i];
+-                ssize_t sz;
++	for (unsigned int i = 0; dev->probes[i] &&
++	                         dev->probes[i]->parse; i++) {
++	        struct dev_probe *probe = dev->probes[i];
++	        ssize_t sz;
+ 
+-                if (!probe->create)
+-                        continue;
++	        if (!probe->create)
++	                continue;
+ 
+-                sz = probe->create(dev, buf + off, size ? size - off : 0, 0);
+-                if (sz < 0) {
+-                        efi_error("could not create %s device path",
+-                                  probe->name);
+-                        return sz;
+-                }
+-                off += sz;
+-        }
++	        sz = probe->create(dev, buf + off, size ? size - off : 0, 0);
++	        if (sz < 0) {
++	                efi_error("could not create %s device path",
++	                          probe->name);
++	                return sz;
++	        }
++	        off += sz;
++	}
+ 
+-        debug("= %zd", off);
++	debug("= %zd", off);
+ 
+-        return off;
++	return off;
+ }
+ 
+ ssize_t HIDDEN
+ make_mac_path(uint8_t *buf, ssize_t size, const char * const ifname)
+ {
+-        struct ifreq ifr;
+-        struct ethtool_drvinfo drvinfo = { 0, };
+-        int fd = -1, rc;
+-        ssize_t ret = -1, sz, off = 0;
+-        char busname[PATH_MAX+1] = "";
+-        struct device dev;
+-
+-        memset(&dev, 0, sizeof (dev));
+-        dev.interface_type = network;
+-        dev.ifname = strdupa(ifname);
+-        if (!dev.ifname)
+-                return -1;
+-
+-        /*
+-         * find the device link, which looks like:
+-         * ../../devices/$PCI_STUFF/net/$IFACE
+-         */
+-        rc = sysfs_readlink(&dev.link, "class/net/%s", ifname);
+-        if (rc < 0 || !dev.link)
+-                goto err;
+-
+-        memset(&ifr, 0, sizeof (ifr));
+-        strncpy(ifr.ifr_name, ifname, IF_NAMESIZE);
+-        ifr.ifr_name[IF_NAMESIZE-1] = '\0';
+-        drvinfo.cmd = ETHTOOL_GDRVINFO;
+-        ifr.ifr_data = (caddr_t)&drvinfo;
+-
+-        fd = socket(AF_INET, SOCK_DGRAM, 0);
+-        if (fd < 0)
+-                goto err;
+-
+-        rc = ioctl(fd, SIOCETHTOOL, &ifr);
+-        if (rc < 0)
+-                goto err;
+-
+-        strncpy(busname, drvinfo.bus_info, PATH_MAX);
+-
+-        rc = ioctl(fd, SIOCGIFHWADDR, &ifr);
+-        if (rc < 0)
+-                goto err;
+-
+-        sz = pci_parser.create(&dev, buf, size, off);
+-        if (sz < 0)
+-                goto err;
+-        off += sz;
+-
+-        sz = efidp_make_mac_addr(buf+off, size?size-off:0,
+-                                 ifr.ifr_ifru.ifru_hwaddr.sa_family,
+-                                 (uint8_t *)ifr.ifr_ifru.ifru_hwaddr.sa_data,
+-                                 sizeof(ifr.ifr_ifru.ifru_hwaddr.sa_data));
+-        if (sz < 0)
+-                goto err;
+-
+-        off += sz;
+-        ret = off;
++	struct ifreq ifr;
++	struct ethtool_drvinfo drvinfo = { 0, };
++	int fd = -1, rc;
++	ssize_t ret = -1, sz, off = 0;
++	char busname[PATH_MAX+1] = "";
++	struct device dev;
++
++	memset(&dev, 0, sizeof (dev));
++	dev.interface_type = network;
++	dev.ifname = strdupa(ifname);
++	if (!dev.ifname)
++	        return -1;
++
++	/*
++	 * find the device link, which looks like:
++	 * ../../devices/$PCI_STUFF/net/$IFACE
++	 */
++	rc = sysfs_readlink(&dev.link, "class/net/%s", ifname);
++	if (rc < 0 || !dev.link)
++	        goto err;
++
++	memset(&ifr, 0, sizeof (ifr));
++	strncpy(ifr.ifr_name, ifname, IF_NAMESIZE);
++	ifr.ifr_name[IF_NAMESIZE-1] = '\0';
++	drvinfo.cmd = ETHTOOL_GDRVINFO;
++	ifr.ifr_data = (caddr_t)&drvinfo;
++
++	fd = socket(AF_INET, SOCK_DGRAM, 0);
++	if (fd < 0)
++	        goto err;
++
++	rc = ioctl(fd, SIOCETHTOOL, &ifr);
++	if (rc < 0)
++	        goto err;
++
++	strncpy(busname, drvinfo.bus_info, PATH_MAX);
++
++	rc = ioctl(fd, SIOCGIFHWADDR, &ifr);
++	if (rc < 0)
++	        goto err;
++
++	sz = pci_parser.create(&dev, buf, size, off);
++	if (sz < 0)
++	        goto err;
++	off += sz;
++
++	sz = efidp_make_mac_addr(buf+off, size?size-off:0,
++	                         ifr.ifr_ifru.ifru_hwaddr.sa_family,
++	                         (uint8_t *)ifr.ifr_ifru.ifru_hwaddr.sa_data,
++	                         sizeof(ifr.ifr_ifru.ifru_hwaddr.sa_data));
++	if (sz < 0)
++	        goto err;
++
++	off += sz;
++	ret = off;
+ err:
+-        if (fd >= 0)
+-                close(fd);
+-        return ret;
++	if (fd >= 0)
++	        close(fd);
++	return ret;
+ }
+ 
+ /************************************************************
+@@ -621,12 +621,12 @@ err:
+ int UNUSED
+ get_sector_size(int filedes)
+ {
+-        int rc, sector_size = 512;
++	int rc, sector_size = 512;
+ 
+-        rc = ioctl(filedes, BLKSSZGET, &sector_size);
+-        if (rc)
+-                sector_size = 512;
+-        return sector_size;
++	rc = ioctl(filedes, BLKSSZGET, &sector_size);
++	if (rc)
++	        sector_size = 512;
++	return sector_size;
+ }
+ 
+-// vim:fenc=utf-8:tw=75:et
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/loadopt.c b/src/loadopt.c
+index 85fb646d107..e643d4a4fb8 100644
+--- a/src/loadopt.c
++++ b/src/loadopt.c
+@@ -374,3 +374,5 @@ efi_loadopt_desc(efi_load_option *opt, ssize_t limit)
+ 	last_desc = ucs2_to_utf8(opt->description, limit);
+ 	return last_desc;
+ }
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/makeguids.c b/src/makeguids.c
+index a15356b152e..f12dac3bb15 100644
+--- a/src/makeguids.c
++++ b/src/makeguids.c
+@@ -247,3 +247,5 @@ main(int argc, char *argv[])
+ 
+ 	return 0;
+ }
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/path-helpers.c b/src/path-helpers.c
+index 1b328071587..dff8f34dfc8 100644
+--- a/src/path-helpers.c
++++ b/src/path-helpers.c
+@@ -23,26 +23,26 @@
+ static bool
+ cinpat(const char c, const char *pat)
+ {
+-        for (unsigned int i = 0; pat[i]; i++)
+-                if (pat[i] == c)
+-                        return true;
+-        return false;
++	for (unsigned int i = 0; pat[i]; i++)
++	        if (pat[i] == c)
++	                return true;
++	return false;
+ }
+ 
+ static unsigned int
+ strxcspn(const char *s, const char *pattern)
+ {
+-        unsigned int i;
+-        for (i = 0; s[i]; i++) {
+-                if (!cinpat(s[i], pattern))
+-                        break;
+-        }
+-        return i;
++	unsigned int i;
++	for (i = 0; s[i]; i++) {
++	        if (!cinpat(s[i], pattern))
++	                break;
++	}
++	return i;
+ }
+ 
+ struct span {
+-        const char *pos;
+-        size_t len;
++	const char *pos;
++	size_t len;
+ };
+ 
+ /*
+@@ -59,116 +59,116 @@ struct span {
+ unsigned int HIDDEN
+ count_spans(const char *str, const char *reject, unsigned int *chars)
+ {
+-        unsigned int s = 0, c = 0, pos = 0;
+-
+-        if (str[0] == '/') {
+-                s += 1;
+-                c += 2;
+-                pos += 1;
+-        }
+-
+-        while (str[pos]) {
+-                unsigned int n;
+-
+-                n = strcspn(str + pos, reject);
+-                if (n) {
+-                        s += 1;
+-                        c += n + 1;
+-                        pos += n;
+-                }
+-
+-                pos += strxcspn(str + pos, reject);
+-        }
+-
+-        if (chars)
+-                *chars = c;
+-        return s;
++	unsigned int s = 0, c = 0, pos = 0;
++
++	if (str[0] == '/') {
++	        s += 1;
++	        c += 2;
++	        pos += 1;
++	}
++
++	while (str[pos]) {
++	        unsigned int n;
++
++	        n = strcspn(str + pos, reject);
++	        if (n) {
++	                s += 1;
++	                c += n + 1;
++	                pos += n;
++	        }
++
++	        pos += strxcspn(str + pos, reject);
++	}
++
++	if (chars)
++	        *chars = c;
++	return s;
+ }
+ 
+ void HIDDEN
+ fill_spans(const char *str, const char *reject, void *spanbuf)
+ {
+-        struct span *spans = (struct span *)spanbuf;
+-        struct span *span = spans;
+-        unsigned int pos = 0;
+-
+-        if (str[0] == '/') {
+-                span->pos = str;
+-                span->len = 1;
+-                span++;
+-                pos += 1;
+-        }
+-
+-        while (str[pos]) {
+-                unsigned int n;
+-
+-                n = strcspn(str + pos, reject);
+-                if (n) {
+-                        span->pos = str + pos;
+-                        span->len = n;
+-                        span++;
+-                        pos += n;
+-                }
+-
+-                pos += strxcspn(str + pos, reject);
+-        }
+-        span->pos = NULL;
+-        span->len = 0;
++	struct span *spans = (struct span *)spanbuf;
++	struct span *span = spans;
++	unsigned int pos = 0;
++
++	if (str[0] == '/') {
++	        span->pos = str;
++	        span->len = 1;
++	        span++;
++	        pos += 1;
++	}
++
++	while (str[pos]) {
++	        unsigned int n;
++
++	        n = strcspn(str + pos, reject);
++	        if (n) {
++	                span->pos = str + pos;
++	                span->len = n;
++	                span++;
++	                pos += n;
++	        }
++
++	        pos += strxcspn(str + pos, reject);
++	}
++	span->pos = NULL;
++	span->len = 0;
+ }
+ 
+ #define split_spans(str, reject)                                        \
+-        ({                                                              \
+-                struct span *ret_ = NULL;                               \
+-                unsigned int s_, c_;                                    \
+-                                                                        \
+-                s_ = count_spans(str, "/", &c_);                        \
+-                if (s_) {                                               \
+-                        ret_ = alloca(sizeof(struct span[s_+1]));       \
+-                        if (ret_)                                       \
+-                                fill_spans(str, reject, ret_);          \
+-                } else {                                                \
+-                        errno = 0;                                      \
+-                }                                                       \
+-                ret_;                                                   \
+-        })
++	({                                                              \
++	        struct span *ret_ = NULL;                               \
++	        unsigned int s_, c_;                                    \
++	                                                                \
++	        s_ = count_spans(str, "/", &c_);                        \
++	        if (s_) {                                               \
++	                ret_ = alloca(sizeof(struct span[s_+1]));       \
++	                if (ret_)                                       \
++	                        fill_spans(str, reject, ret_);          \
++	        } else {                                                \
++	                errno = 0;                                      \
++	        }                                                       \
++	        ret_;                                                   \
++	})
+ 
+ int HIDDEN
+ find_path_segment(const char *path, int segment, const char **pos, size_t *len)
+ {
+-        struct span *span, *last;
+-        int nspans = 0;
+-
+-        if (!pos || !len) {
+-                errno = EINVAL;
+-                return -1;
+-        }
+-
+-        span = split_spans(path, "/");
+-        if (!span) {
+-                if (errno)
+-                        return -1;
+-                *pos = NULL;
+-                *len = 0;
+-                return 0;
+-        }
+-
+-        for (last = span; last->pos; last++)
+-                nspans += 1;
+-
+-        if (segment < 0)
+-                segment = nspans + segment;
+-
+-        if (nspans < 1 || segment < 0 || segment >= nspans) {
+-                errno = ENOENT;
+-                return -1;
+-        }
+-
+-        for (int i = 0; i < segment; i++)
+-                span++;
+-
+-        *pos = span->pos;
+-        *len = span->len;
+-        return 0;
++	struct span *span, *last;
++	int nspans = 0;
++
++	if (!pos || !len) {
++	        errno = EINVAL;
++	        return -1;
++	}
++
++	span = split_spans(path, "/");
++	if (!span) {
++	        if (errno)
++	                return -1;
++	        *pos = NULL;
++	        *len = 0;
++	        return 0;
++	}
++
++	for (last = span; last->pos; last++)
++	        nspans += 1;
++
++	if (segment < 0)
++	        segment = nspans + segment;
++
++	if (nspans < 1 || segment < 0 || segment >= nspans) {
++	        errno = ENOENT;
++	        return -1;
++	}
++
++	for (int i = 0; i < segment; i++)
++	        span++;
++
++	*pos = span->pos;
++	*len = span->len;
++	return 0;
+ }
+ 
+-// vim:fenc=utf-8:tw=75:et
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/vars.c b/src/vars.c
+index 218146028bd..148dd7943bc 100644
+--- a/src/vars.c
++++ b/src/vars.c
+@@ -670,3 +670,5 @@ struct efi_var_operations vars_ops = {
+ 	.get_next_variable_name = vars_get_next_variable_name,
+ 	.chmod_variable = vars_chmod_variable,
+ };
++
++// vim:fenc=utf-8:tw=75:noet
+-- 
+2.24.1
+

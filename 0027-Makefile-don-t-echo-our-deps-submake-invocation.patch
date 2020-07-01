@@ -1,0 +1,26 @@
+From f4258e12c75c446dab98c71354ae38c6bb9a7979 Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Tue, 18 Jun 2019 10:05:11 -0400
+Subject: [PATCH 27/86] Makefile: don't echo our deps submake invocation
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ src/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/Makefile b/src/Makefile
+index 76bc4748eb1..ecbbc02e1f7 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -84,7 +84,7 @@ libefiboot.so : LIBS=efivar
+ libefiboot.so : MAP=libefiboot.map
+ 
+ deps : $(ALL_SOURCES)
+-	$(MAKE) -f $(SRCDIR)/Make.deps deps SOURCES="$(ALL_SOURCES)"
++	@$(MAKE) -f $(SRCDIR)/Make.deps deps SOURCES="$(ALL_SOURCES)"
+ 
+ clean : 
+ 	@rm -rfv *~ *.o *.a *.E *.so *.so.* *.pc *.bin .*.d *.map \
+-- 
+2.24.1
+

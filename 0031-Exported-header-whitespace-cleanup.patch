@@ -1,0 +1,97 @@
+From 68dfc9ec98de261401deb88686cd35600d69b8a6 Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Mon, 17 Jun 2019 14:27:08 -0400
+Subject: [PATCH 31/86] Exported header whitespace cleanup.
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ src/include/efivar/efiboot-creator.h | 2 ++
+ src/include/efivar/efiboot-loadopt.h | 2 ++
+ src/include/efivar/efiboot.h         | 4 +++-
+ src/include/efivar/efivar-dp.h       | 8 +++++---
+ src/include/efivar/efivar.h          | 8 ++++----
+ 5 files changed, 16 insertions(+), 8 deletions(-)
+
+diff --git a/src/include/efivar/efiboot-creator.h b/src/include/efivar/efiboot-creator.h
+index b56e836d2e5..b6e094c637c 100644
+--- a/src/include/efivar/efiboot-creator.h
++++ b/src/include/efivar/efiboot-creator.h
+@@ -58,3 +58,5 @@ extern ssize_t efi_generate_ipv4_device_path(uint8_t *buf, ssize_t size,
+ 	__attribute__((__visibility__ ("default")));
+ 
+ #endif /* _EFIBOOT_CREATOR_H */
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/include/efivar/efiboot-loadopt.h b/src/include/efivar/efiboot-loadopt.h
+index efc29c69d47..97b7892f4b8 100644
+--- a/src/include/efivar/efiboot-loadopt.h
++++ b/src/include/efivar/efiboot-loadopt.h
+@@ -74,3 +74,5 @@ extern int efi_loadopt_is_valid(efi_load_option *opt, size_t size)
+ 	__attribute__((__visibility__ ("default")));
+ 
+ #endif /* _EFIBOOT_LOADOPT_H */
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/include/efivar/efiboot.h b/src/include/efivar/efiboot.h
+index 2aee86d661e..8ae51ffa2a7 100644
+--- a/src/include/efivar/efiboot.h
++++ b/src/include/efivar/efiboot.h
+@@ -36,6 +36,8 @@
+ #include <efivar/efiboot-loadopt.h>
+ 
+ extern uint32_t efi_get_libefiboot_version(void)
+-        __attribute__((__visibility__("default")));
++	__attribute__((__visibility__("default")));
+ 
+ #endif /* EFIBOOT_H */
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/include/efivar/efivar-dp.h b/src/include/efivar/efivar-dp.h
+index eab04f2dfac..57453548701 100644
+--- a/src/include/efivar/efivar-dp.h
++++ b/src/include/efivar/efivar-dp.h
+@@ -135,9 +135,9 @@ typedef struct {
+ } EFIVAR_PACKED efidp_acpi_hid_ex;
+ extern ssize_t
+ efidp_make_acpi_hid_ex(uint8_t *buf, ssize_t size,
+-                       uint32_t hid, uint32_t uid, uint32_t cid,
+-                       const char *hidstr, const char *uidstr,
+-                       const char *cidstr);
++		       uint32_t hid, uint32_t uid, uint32_t cid,
++		       const char *hidstr, const char *uidstr,
++		       const char *cidstr);
+ 
+ #define EFIDP_PNP_EISA_ID_CONST		0x41d0
+ #define EFIDP_PNP_ACPI_ID_CONST		0x8e09
+@@ -1257,3 +1257,5 @@ extern ssize_t efidp_make_generic(uint8_t *buf, ssize_t size, uint8_t type,
+ 			   EFIDP_END_INSTANCE, sizeof (efidp_header));
+ 
+ #endif /* _EFIVAR_DP_H */
++
++// vim:fenc=utf-8:tw=75:noet
+diff --git a/src/include/efivar/efivar.h b/src/include/efivar/efivar.h
+index 2fdf5b93b29..caa4adf056c 100644
+--- a/src/include/efivar/efivar.h
++++ b/src/include/efivar/efivar.h
+@@ -243,14 +243,14 @@ efi_set_loglevel(int level __attribute__((__unused__)))
+ 	efi_error_real__(errval, __FILE__, __func__, __LINE__, (fmt), ## args)
+ 
+ extern void efi_set_verbose(int verbosity, FILE *errlog)
+-        __attribute__((__visibility__("default")));
++	__attribute__((__visibility__("default")));
+ extern int efi_get_verbose(void)
+-        __attribute__((__visibility__("default")));
++	__attribute__((__visibility__("default")));
+ extern FILE * efi_get_logfile(void)
+-        __attribute__((__visibility__("default")));
++	__attribute__((__visibility__("default")));
+ 
+ extern uint32_t efi_get_libefivar_version(void)
+-        __attribute__((__visibility__("default")));
++	__attribute__((__visibility__("default")));
+ 
+ #include <efivar/efivar-dp.h>
+ 
+-- 
+2.24.1
+

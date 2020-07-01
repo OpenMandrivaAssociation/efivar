@@ -8,18 +8,29 @@
 
 %define minor %(echo %{version} |cut -d. -f2)
 
+%global optflags %{optflags} -Oz
+
 Name:		efivar
 Version:	37
-Release:	1
+Release:	2
 Summary:	EFI variables management tool
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
-Url:		https://github.com/rhinstaller/efivar
-Source0:	https://github.com/rhinstaller/%{name}/releases/download/%{minor}/%{name}-%{version}.tar.bz2
-Patch0:		workaround-for-bug64.patch
+Url:		https://github.com/rhboot/efivar
+Source0:	https://github.com/rhboot/%{name}/releases/download/%{minor}/%{name}-%{version}.tar.bz2
+Source1:        efivar.patches
+
+%include %{SOURCE1}
+
+# Source1 patches reflect a git snapshot, this is a separate fix on top
+# with a gap in between
+Patch100:       0001-Fix-sys-block-sysfs-parsing-for-eMMC-s.patch
+
+BuildRequires:	efi-srpm-macros
 BuildRequires:	pkgconfig(popt)
 BuildRequires:	kernel-release-devel-latest
 BuildRequires:	glibc-static-devel
+BuildRequires:	git-core
 
 %description
 efivar is a command line interface to the EFI variables in '/sys/firmware/efi'.
@@ -35,7 +46,7 @@ efivar is a command line interface to the EFI variables in '/sys/firmware/efi'.
 Summary:	Shared library for %{name}
 Group:		System/Libraries
 
-%description -n	%{libname}
+%description -n %{libname}
 Shared library support for the efitools, efivar and efibootmgr.
 
 %files -n %{libname}
@@ -45,7 +56,7 @@ Shared library support for the efitools, efivar and efibootmgr.
 Summary:	Shared library for %{name}
 Group:		System/Libraries
 
-%description -n	%{libefiboot}
+%description -n %{libefiboot}
 Shared library support for the efitools, efivar and efibootmgr.
 
 %files -n %{libefiboot}
@@ -90,11 +101,19 @@ Development files for libefiboot.
 #------------------------------------------------------------------
 
 %prep
-%autosetup -p1
+%setup -q
+git init
+git config user.email "%{name}-owner@fedoraproject.org"
+git config user.name "Fedora Ninjas"
+git add .
+git commit -a -q -m "%{version} baseline."
+git am %{patches} </dev/null
+git config --unset user.email
+git config --unset user.name
 
 %build
-%setup_compile_flags
-%make_build libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" CFLAGS="%{optflags}" LDFLAGS="%{ldflags}" gcc_ccldflags="%{ldflags}" V=1 -j1
+%set_build_flags
+%make_build libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" COMPILER=%{__cc} CC=%{__cc} OPTIMIZE="%{optflags}" LDFLAGS="%{ldflags}" gcc_ccldflags="%{ldflags}" V=1 -j1
 
 %install
 %make_install libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}"

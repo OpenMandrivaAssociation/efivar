@@ -1,0 +1,129 @@
+From 038afd7a792df5d882d4ca29cc6f9723f3c3fc0f Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Wed, 13 Mar 2019 11:01:34 -0400
+Subject: [PATCH 13/86] Always refer to MBR and GPT fixed values as 'magic' not
+ 'signature'
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ src/disk.c |  5 +++--
+ src/gpt.c  | 22 +++++++++++-----------
+ src/gpt.h  |  8 ++++----
+ 3 files changed, 18 insertions(+), 17 deletions(-)
+
+diff --git a/src/disk.c b/src/disk.c
+index 3efee03b804..519c2a19325 100644
+--- a/src/disk.c
++++ b/src/disk.c
+@@ -52,10 +52,11 @@ is_mbr_valid(legacy_mbr *mbr)
+ 	int ret;
+ 	if (!mbr)
+ 		return 0;
+-	ret = (mbr->signature == MSDOS_MBR_SIGNATURE);
++	ret = (mbr->magic == MSDOS_MBR_MAGIC);
+ 	if (!ret) {
+ 		errno = ENOTTY;
+-		efi_error("mbr signature is not MSDOS_MBR_SIGNATURE");
++		efi_error("mbr magic is 0x%04hx not MSDOS_MBR_MAGIC (0x%04hx)",
++			  mbr->magic, MSDOS_MBR_MAGIC);
+ 	}
+ 	return ret;
+ }
+diff --git a/src/gpt.c b/src/gpt.c
+index ce8e638ab83..7bdb8ad1575 100644
+--- a/src/gpt.c
++++ b/src/gpt.c
+@@ -72,24 +72,24 @@ efi_crc32(const void *buf, unsigned long len)
+  *
+  * Description: Returns 1 if PMBR is valid, 0 otherwise.
+  * Validity depends on two things:
+- *  1) MSDOS signature is in the last two bytes of the MBR
++ *  1) MSDOS magic is in the last two bytes of the MBR
+  *  2) One partition of type 0xEE is found
+  */
+ static int
+ is_pmbr_valid(legacy_mbr *mbr)
+ {
+-	int i, found = 0, signature = 0;
++	int i, found = 0, magic = 0;
+ 	if (!mbr)
+ 		return 0;
+-	signature = (le16_to_cpu(mbr->signature) == MSDOS_MBR_SIGNATURE);
+-	for (i = 0; signature && i < 4; i++) {
++	magic = (le16_to_cpu(mbr->magic) == MSDOS_MBR_MAGIC);
++	for (i = 0; magic && i < 4; i++) {
+ 		if (mbr->partition[i].os_type ==
+ 		    EFI_PMBR_OSTYPE_EFI_GPT) {
+ 			found = 1;
+ 			break;
+ 		}
+ 	}
+-	return (signature && found);
++	return (magic && found);
+ }
+ 
+ /**
+@@ -389,11 +389,11 @@ is_gpt_valid(int fd, uint64_t lba,
+ 	if (!(*gpt = alloc_read_gpt_header(fd, lba)))
+ 		return 0;
+ 
+-	/* Check the GUID Partition Table signature */
+-	if (le64_to_cpu((*gpt)->signature) != GPT_HEADER_SIGNATURE) {
+-		efi_error("GUID Partition Table Header signature is wrong: %"PRIx64" != %"PRIx64,
+-			  (uint64_t)le64_to_cpu((*gpt)->signature),
+-			  GPT_HEADER_SIGNATURE);
++	/* Check the GUID Partition Table magic */
++	if (le64_to_cpu((*gpt)->magic) != GPT_HEADER_MAGIC) {
++		efi_error("GUID Partition Table Header magic is wrong: %"PRIx64" != %"PRIx64,
++			  (uint64_t)le64_to_cpu((*gpt)->magic),
++			  GPT_HEADER_MAGIC);
+ 		free(*gpt);
+ 		*gpt = NULL;
+ 		return rc;
+@@ -673,7 +673,7 @@ find_valid_gpt(int fd, gpt_header ** gpt, gpt_entry ** ptes,
+ 
+ 	/* Would fail due to bad PMBR, but force GPT anyhow */
+ 	if ((good_pgpt || good_agpt) && !good_pmbr && ignore_pmbr_err) {
+-		efi_error("  Warning: Disk has a valid GPT signature but invalid PMBR.\n"
++		efi_error("  Warning: Disk has a valid GPT magic but invalid PMBR.\n"
+ 			  "  Use GNU Parted to correct disk.\n"
+ 			  "  gpt option taken, disk treated as GPT.");
+ 	}
+diff --git a/src/gpt.h b/src/gpt.h
+index 5eb5d1a732c..0d7d5e8a649 100644
+--- a/src/gpt.h
++++ b/src/gpt.h
+@@ -29,10 +29,10 @@
+ 
+ #define EFI_PMBR_OSTYPE_EFI 0xEF
+ #define EFI_PMBR_OSTYPE_EFI_GPT 0xEE
+-#define MSDOS_MBR_SIGNATURE 0xaa55
++#define MSDOS_MBR_MAGIC 0xaa55
+ #define GPT_BLOCK_SIZE 512
+ 
+-#define GPT_HEADER_SIGNATURE ((uint64_t)(0x5452415020494645ULL))
++#define GPT_HEADER_MAGIC ((uint64_t)(0x5452415020494645ULL))
+ #define GPT_HEADER_REVISION_V1_02 0x00010200
+ #define GPT_HEADER_REVISION_V1_00 0x00010000
+ #define GPT_HEADER_REVISION_V0_99 0x00009900
+@@ -61,7 +61,7 @@
+                  0x23, 0x8f, 0x2a, 0x3d, 0xf9, 0x28)
+ 
+ typedef struct _gpt_header {
+-	uint64_t signature;
++	uint64_t magic;
+ 	uint32_t revision;
+ 	uint32_t header_size;
+ 	uint32_t header_crc32;
+@@ -133,7 +133,7 @@ typedef struct _legacy_mbr {
+ 	uint32_t unique_mbr_signature;
+ 	uint16_t unknown;
+ 	partition_record partition[4];
+-	uint16_t signature;
++	uint16_t magic;
+ } PACKED legacy_mbr;
+ 
+ #define EFI_GPT_PRIMARY_PARTITION_TABLE_LBA 1
+-- 
+2.24.1
+

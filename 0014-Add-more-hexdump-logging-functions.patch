@@ -1,0 +1,87 @@
+From 48910a0cd39d7c08dab555fb464f9765163ad37b Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Wed, 13 Mar 2019 11:02:01 -0400
+Subject: [PATCH 14/86] Add more hexdump logging functions.
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ src/hexdump.h | 30 ++++++++++++++++++++++++++++--
+ src/util.h    | 10 ++++++++++
+ 2 files changed, 38 insertions(+), 2 deletions(-)
+
+diff --git a/src/hexdump.h b/src/hexdump.h
+index 4c45cb3732d..f8c32faa9e1 100644
+--- a/src/hexdump.h
++++ b/src/hexdump.h
+@@ -63,8 +63,12 @@ prepare_text(uint8_t *data, unsigned long size, char *buf)
+ 	buf[offset] = '\0';
+ }
+ 
++/*
++ * variadic fhexdump formatted
++ * think of it as: fprintf(f, %s%s\n", vformat(fmt, ap), hexdump(data,size));
++ */
+ static inline void UNUSED
+-hexdump(uint8_t *data, unsigned long size)
++vfhexdumpf(FILE *f, const char * const fmt, uint8_t *data, unsigned long size, va_list ap)
+ {
+ 	unsigned long display_offset = (unsigned long)data & 0xffffffff;
+ 	unsigned long offset = 0;
+@@ -80,11 +84,33 @@ hexdump(uint8_t *data, unsigned long size)
+ 			return;
+ 
+ 		prepare_text(data+offset, size-offset, txtbuf);
+-		printf("%016lx  %s  %s\n", display_offset, hexbuf, txtbuf);
++		vfprintf(f, fmt, ap);
++		fprintf(f, "%016lx  %s  %s\n", display_offset, hexbuf, txtbuf);
+ 
+ 		display_offset += sz;
+ 		offset += sz;
+ 	}
++	fflush(f);
++}
++
++/*
++ * fhexdump formatted
++ * think of it as: fprintf(f, %s%s\n", format(fmt, ...), hexdump(data,size));
++ */
++static inline void UNUSED
++fhexdumpf(FILE *f, const char * const fmt, uint8_t *data, unsigned long size, ...)
++{
++	va_list ap;
++
++	va_start(ap, size);
++	vfhexdumpf(f, fmt, data, size, ap);
++	va_end(ap);
++}
++
++static inline void UNUSED
++hexdump(uint8_t *data, unsigned long size)
++{
++	fhexdumpf(stdout, "", data, size);
+ }
+ 
+ #endif /* STATIC_HEXDUMP_H */
+diff --git a/src/util.h b/src/util.h
+index d98bfa1beed..a6a80e754ec 100644
+--- a/src/util.h
++++ b/src/util.h
+@@ -400,5 +400,15 @@ swizzle_guid_to_uuid(efi_guid_t *guid)
+ #endif
+ #define log(level, fmt, args...) log_(__FILE__, __LINE__, __func__, level, fmt, ## args)
+ #define debug(fmt, args...) log(LOG_DEBUG, fmt, ## args)
++#define log_hex_(file, line, func, level, buf, size)                    \
++        ({                                                              \
++                if (efi_get_verbose() >= level) {                       \
++                        fhexdumpf(efi_get_logfile(), "%s:%d %s(): ",    \
++                                  (uint8_t *)buf, size,                 \
++                                  file, line, func);                    \
++                }                                                       \
++        })
++#define log_hex(level, buf, size) log_hex_(__FILE__, __LINE__, __func__, level, buf, size)
++#define debug_hex(buf, size) log_hex(LOG_DEBUG, buf, size)
+ 
+ #endif /* EFIVAR_UTIL_H */
+-- 
+2.24.1
+

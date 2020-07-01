@@ -1,0 +1,126 @@
+From 2763ad732781c9e8b36bdab25d04ca632c9b77fe Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Tue, 28 May 2019 16:08:25 -0400
+Subject: [PATCH 18/86] Add efi_get_libefivar_version() and
+ efi_get_libefiboot_version()
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ Make.defaults                | 2 +-
+ src/Android.mk               | 4 +++-
+ src/creator.c                | 6 ++++++
+ src/include/efivar/efiboot.h | 3 +++
+ src/include/efivar/efivar.h  | 3 +++
+ src/lib.c                    | 6 ++++++
+ src/libefiboot.map.in        | 4 ++++
+ src/libefivar.map.in         | 1 +
+ 8 files changed, 27 insertions(+), 2 deletions(-)
+
+diff --git a/Make.defaults b/Make.defaults
+index 57cee6e82b5..6c575846687 100644
+--- a/Make.defaults
++++ b/Make.defaults
+@@ -18,7 +18,7 @@ CCLD_FOR_BUILD	?= $(CC_FOR_BUILD)
+ CCLD	:= $(if $(filter undefined,$(origin CCLD)),$(CC),$(CCLD))
+ OPTIMIZE ?= -O2 -flto
+ CFLAGS	?= $(OPTIMIZE) -g3
+-CFLAGS	:= $(CFLAGS)
++CFLAGS	:= $(CFLAGS) -DLIBEFIVAR_VERSION=$(VERSION)
+ LDFLAGS ?=
+ LDFLAGS := $(LDFLAGS)
+ AR	:= $(CROSS_COMPILE)$(COMPILER)-ar
+diff --git a/src/Android.mk b/src/Android.mk
+index b3410e1f3e7..bf6cfb2e91b 100644
+--- a/src/Android.mk
++++ b/src/Android.mk
+@@ -46,8 +46,10 @@ LIBEFIVAR_SOURCES := \
+ 	lib.c \
+ 	vars.c
+ 
++include $(LOCAL_PATH)/../Make.version
++
+ LOCAL_SRC_FILES := $(LIBEFIBOOT_SOURCES) $(LIBEFIVAR_SOURCES)
+-LOCAL_CFLAGS := -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -std=gnu11
++LOCAL_CFLAGS := -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -std=gnu11 -DLIBEFIVAR_VERSION=$(VERSION)
+ LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
+ LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_C_INCLUDES) $(LOCAL_C_INCLUDES)/efivar $(local-generated-sources-dir)
+ LIBEFIVAR_GUIDS_H := $(local-generated-sources-dir)/efivar/efivar-guids.h
+diff --git a/src/creator.c b/src/creator.c
+index 987fa033e5b..f4bb01bc4a6 100644
+--- a/src/creator.c
++++ b/src/creator.c
+@@ -511,3 +511,9 @@ efi_generate_ipv4_device_path(uint8_t *buf, ssize_t size,
+ 
+ 	return off;
+ }
++
++uint32_t PUBLIC
++efi_get_libefiboot_version(void)
++{
++        return LIBEFIVAR_VERSION;
++}
+diff --git a/src/include/efivar/efiboot.h b/src/include/efivar/efiboot.h
+index c2af55fbf45..2aee86d661e 100644
+--- a/src/include/efivar/efiboot.h
++++ b/src/include/efivar/efiboot.h
+@@ -35,4 +35,7 @@
+ #include <efivar/efiboot-creator.h>
+ #include <efivar/efiboot-loadopt.h>
+ 
++extern uint32_t efi_get_libefiboot_version(void)
++        __attribute__((__visibility__("default")));
++
+ #endif /* EFIBOOT_H */
+diff --git a/src/include/efivar/efivar.h b/src/include/efivar/efivar.h
+index 343d1c557da..ff95cb10791 100644
+--- a/src/include/efivar/efivar.h
++++ b/src/include/efivar/efivar.h
+@@ -249,6 +249,9 @@ extern int efi_get_verbose(void)
+ extern FILE * efi_get_logfile(void)
+         __attribute__((__visibility__("default")));
+ 
++extern uint32_t efi_get_libefivar_version(void)
++        __attribute__((__visibility__("default")));
++
+ #include <efivar/efivar-dp.h>
+ 
+ #endif /* EFIVAR_H */
+diff --git a/src/lib.c b/src/lib.c
+index dc06fdb3c15..457a8604d5d 100644
+--- a/src/lib.c
++++ b/src/lib.c
+@@ -265,3 +265,9 @@ libefivar_init(void)
+ 		}
+ 	}
+ }
++
++uint32_t PUBLIC
++efi_get_libefivar_version(void)
++{
++	return LIBEFIVAR_VERSION;
++}
+diff --git a/src/libefiboot.map.in b/src/libefiboot.map.in
+index cb19d65d0e4..0771eac5639 100644
+--- a/src/libefiboot.map.in
++++ b/src/libefiboot.map.in
+@@ -33,3 +33,7 @@ LIBEFIBOOT_1.29 {
+ 
+ LIBEFIBOOT_1.30 {
+ } LIBEFIBOOT_1.29;
++
++LIBEFIBOOT_1.31 {
++	global:	efi_get_libefiboot_version;
++} LIBEFIBOOT_1.30;
+diff --git a/src/libefivar.map.in b/src/libefivar.map.in
+index 8965b729917..33196fefc64 100644
+--- a/src/libefivar.map.in
++++ b/src/libefivar.map.in
+@@ -134,4 +134,5 @@ LIBEFIVAR_1.37 {
+ LIBEFIVAR_1.38 {
+ 	global: efi_error_pop;
+ 		efi_stash_loglevel_;
++		efi_get_libefivar_version;
+ } LIBEFIVAR_1.37;
+-- 
+2.24.1
+

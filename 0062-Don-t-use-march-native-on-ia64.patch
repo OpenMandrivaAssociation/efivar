@@ -1,0 +1,43 @@
+From b99adbbd711ff4c4cc0caa9d171d07914ee7ddef Mon Sep 17 00:00:00 2001
+From: Peter Jones <pjones@redhat.com>
+Date: Mon, 13 Jan 2020 15:58:47 -0500
+Subject: [PATCH 62/86] Don't use -march=native on ia64.
+
+I don't understand why this architecture hasn't been fully pushed into
+the sea*, but somehow there are bug reports anyway.  In this case,
+because the gcc port is inadequately maintained.
+
+(* don't pollute the planet this way, destroy the device responsibly.)
+
+Resolves github issue #144
+
+Signed-off-by: Peter Jones <pjones@redhat.com>
+---
+ src/include/defaults.mk | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/src/include/defaults.mk b/src/include/defaults.mk
+index af6a41a9824..8a784d00be3 100644
+--- a/src/include/defaults.mk
++++ b/src/include/defaults.mk
+@@ -56,10 +56,16 @@ override _CCLDFLAGS := $(CCLDFLAGS)
+ override CCLDFLAGS = $(CFLAGS) -L. $(_CCLDFLAGS) \
+ 		     $(call add-prefix,-Wl,$(LDFLAGS)) \
+ 		     $(call pkg-config-ccldflags)
++HOST_ARCH=$(shell uname -m)
++ifneq ($(HOST_ARCH),ia64)
++	HOST_MARCH=-march=native
++else
++	HOST_MARCH=
++endif
+ HOST_CPPFLAGS ?= $(CPPFLAGS)
+ override _HOST_CPPFLAGS := $(HOST_CPPFLAGS)
+ override HOST_CPPFLAGS = $(_HOST_CPPFLAGS) \
+-			 -DEFIVAR_BUILD_ENVIRONMENT -march=native
++			 -DEFIVAR_BUILD_ENVIRONMENT $(HOST_MARCH)
+ HOST_CFLAGS ?= $(CFLAGS)
+ override _HOST_CFLAGS := $(HOST_CFLAGS)
+ override HOST_CFLAGS = $(_HOST_CFLAGS)
+-- 
+2.24.1
+
