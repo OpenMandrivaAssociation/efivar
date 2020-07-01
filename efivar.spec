@@ -12,7 +12,7 @@
 
 Name:		efivar
 Version:	37
-Release:	2
+Release:	3
 Summary:	EFI variables management tool
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
@@ -70,7 +70,7 @@ Group:		Development/Other
 Requires:	%{libname} = %{EVRD}
 Provides:	%{name}-devel = %{EVRD}
 
-%description -n	%{devname}
+%description -n %{devname}
 Development files for libefivar.
 
 %files -n %{devname}
@@ -88,7 +88,7 @@ Requires:	%{libefiboot} = %{EVRD}
 Provides:	libefiboot-devel = %{EVRD}
 Provides:	efiboot-devel = %{EVRD}
 
-%description -n	%{devefiboot}
+%description -n %{devefiboot}
 Development files for libefiboot.
 
 %files -n %{devefiboot}
@@ -116,7 +116,7 @@ sed -i -e 's#-Wl,--add-needed##g' src/include/defaults.mk
 
 %build
 %set_build_flags
-%make_build libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" COMPILER=clang CC=clang OPTIMIZE="%{optflags}" LDFLAGS="%{ldflags}" gcc_ccldflags="%{ldflags}" V=1 -j1
+%make_build libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" COMPILER=%{__cc} CC=%{__cc} OPTIMIZE="%{optflags}" LDFLAGS="%{build_ldflags}" gcc_ccldflags="%{build_ldflags}" V=1 -j1
 
 %install
 %make_install libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}"
