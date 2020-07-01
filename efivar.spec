@@ -28,7 +28,7 @@ Patch100:       0001-Fix-sys-block-sysfs-parsing-for-eMMC-s.patch
 
 BuildRequires:	efi-srpm-macros
 BuildRequires:	pkgconfig(popt)
-BuildRequires:	kernel-release-devel-latest
+BuildRequires:	kernel-release-devel
 BuildRequires:	glibc-static-devel
 BuildRequires:	git-core
 
