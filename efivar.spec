@@ -8,11 +8,14 @@
 
 %define minor %(echo %{version} |cut -d. -f2)
 
+# (tpg) seems some ASM code is not compatible with LTO
+%define _disable_lto 1
+
 %global optflags %{optflags} -Oz
 
 Name:		efivar
 Version:	37
-Release:	3
+Release:	4
 Summary:	EFI variables management tool
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
