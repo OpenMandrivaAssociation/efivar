@@ -116,6 +116,10 @@ git config --unset user.name
 
 # (tpg) 2020-07-01 looks like LLD does not support --add-needed
 sed -i -e 's#-Wl,--add-needed##g' src/include/defaults.mk
+# fdrt dont use march=native on aarch64
+%ifarch aarch64 riscv64
+sed -i -e 's!-march=native!!g' src/include/defaults.mk
+%endif
 
 %build
 %set_build_flags
