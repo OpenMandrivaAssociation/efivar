@@ -15,20 +15,20 @@
 
 Name:		efivar
 Version:	37
-Release:	4
+Release:	5
 Summary:	EFI variables management tool
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
 Url:		https://github.com/rhboot/efivar
 Source0:	https://github.com/rhboot/%{name}/releases/download/%{minor}/%{name}-%{version}.tar.bz2
-Source1:        efivar.patches
+Source1:	efivar.patches
 
 %include %{SOURCE1}
 
 # Source1 patches reflect a git snapshot, this is a separate fix on top
 # with a gap in between
-Patch100:       0001-Fix-sys-block-sysfs-parsing-for-eMMC-s.patch
-
+Patch100:	https://src.fedoraproject.org/rpms/efivar/raw/master/f/0001-Fix-sys-block-sysfs-parsing-for-eMMC-s.patch
+Patch101:	https://src.fedoraproject.org/rpms/efivar/raw/master/f/0001-Fix-abidw-output-for-missing-variadic-arguments.patch
 BuildRequires:	efi-srpm-macros
 BuildRequires:	pkgconfig(popt)
 BuildRequires:	kernel-release-devel
