@@ -15,7 +15,7 @@
 
 Name:		efivar
 Version:	37
-Release:	5
+Release:	6
 Summary:	EFI variables management tool
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
@@ -41,7 +41,7 @@ efivar is a command line interface to the EFI variables in '/sys/firmware/efi'.
 %files
 %doc COPYING README.md TODO
 %{_bindir}/efivar
-%{_mandir}/man1/*
+%doc %{_mandir}/man1/*
 
 #------------------------------------------------------------------
 
@@ -82,7 +82,7 @@ Development files for libefivar.
 %{_includedir}/efivar/efivar.h
 %{_libdir}/libefivar.so
 %{_libdir}/pkgconfig/efivar.pc
-%{_mandir}/man3/*
+%doc %{_mandir}/man3/*
 
 %package -n %{devefiboot}
 Summary:	The libefiboot development files
