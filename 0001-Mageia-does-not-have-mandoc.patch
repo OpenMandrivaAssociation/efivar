@@ -1,0 +1,29 @@
+From f87e08eb066ea50507c4a7a0815b59ecfbd93b6a Mon Sep 17 00:00:00 2001
+From: Fedora Ninjas <efivar-owner@fedoraproject.org>
+Date: Wed, 19 Jan 2022 11:17:47 +0100
+Subject: [PATCH] Mageia does not have mandoc
+
+---
+ src/include/rules.mk | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/include/rules.mk b/src/include/rules.mk
+index f309f86..da0fbaa 100644
+--- a/src/include/rules.mk
++++ b/src/include/rules.mk
+@@ -21,10 +21,10 @@ family = $(foreach FAMILY_SUFFIX,$(FAMILY_SUFFIXES),$($(1)_$(FAMILY_SUFFIX)))
+ 	$(AR) -cvqs $@ $^
+ 
+ %.1 : %.1.mdoc
+-	$(MANDOC) -mdoc -Tman -Ios=Linux $^ > $@
++	true
+ 
+ %.3 : %.3.mdoc
+-	$(MANDOC) -mdoc -Tman -Ios=Linux $^ > $@
++	true
+ 
+ % : %.c
+ 
+-- 
+2.34.1
+

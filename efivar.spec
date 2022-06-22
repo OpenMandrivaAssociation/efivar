@@ -1,3 +1,6 @@
+# (tpg) 2022-06-29 ld.lld: error: undefined symbol: efi_error_set
+%define _disable_ld_no_undefined 1
+
 %define major 1
 
 %define libname %mklibname %{name} %{major}
@@ -8,39 +11,41 @@
 
 %define minor %(echo %{version} |cut -d. -f2)
 
-# (tpg) seems some ASM code is not compatible with LTO
-%define _disable_lto 1
-
 %global optflags %{optflags} -Oz
 
+
 Name:		efivar
-Version:	37
-Release:	6
+Version:	38
+Release:	1
 Summary:	EFI variables management tool
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
 Url:		https://github.com/rhboot/efivar
 Source0:	https://github.com/rhboot/%{name}/releases/download/%{minor}/%{name}-%{version}.tar.bz2
-Source1:	efivar.patches
-
-%include %{SOURCE1}
-
-# Source1 patches reflect a git snapshot, this is a separate fix on top
-# with a gap in between
-Patch100:	https://src.fedoraproject.org/rpms/efivar/raw/master/f/0001-Fix-sys-block-sysfs-parsing-for-eMMC-s.patch
-Patch101:	https://src.fedoraproject.org/rpms/efivar/raw/master/f/0001-Fix-abidw-output-for-missing-variadic-arguments.patch
+Patch0:		0000-Add-T-workaround-for-GNU-ld-2.36.patch
+Patch1:		0001-Add-extern-C-to-headers-for-easier-use-by-C.patch
+Patch2:		0002-Avoid-format-error-on-i686.patch
+Patch3:		0003-Fix-the-march-issue-for-riscv64.patch
+Patch4:		0004-efisecdb-fix-build-with-musl-libc.patch
+Patch5:		0005-efisecdb-do-not-free-optarg.patch
+Patch6:		0006-Fix-invalid-free-in-main.patch
+Patch7:		0007-Remove-deprecated-add-needed-linker-flag.patch
+Patch8:		0008-src-Makefile-build-util.c-separately-for-makeguids.patch
+Patch9:		0009-Adjust-dependency-for-libefivar-and-libefiboot-objec.patch
+Patch100:	efivar-38-fix-lld-support.patch
+Patch101:	http://svnweb.mageia.org/packages/cauldron/efivar/current/SOURCES/0001-Mageia-does-not-have-mandoc.patch
 BuildRequires:	efi-srpm-macros
 BuildRequires:	pkgconfig(popt)
-BuildRequires:	kernel-release-devel
+BuildRequires:	kernel-devel
 BuildRequires:	glibc-static-devel
-BuildRequires:	git-core
+ExclusiveArch:	%{efi}
 
 %description
 efivar is a command line interface to the EFI variables in '/sys/firmware/efi'.
 
 %files
 %doc COPYING README.md TODO
-%{_bindir}/efivar
+%{_bindir}/*
 %doc %{_mandir}/man1/*
 
 #------------------------------------------------------------------
@@ -48,74 +53,35 @@ efivar is a command line interface to the EFI variables in '/sys/firmware/efi'.
 %package -n %{libname}
 Summary:	Shared library for %{name}
 Group:		System/Libraries
+%rename %{_lib}efiboot
 
 %description -n %{libname}
 Shared library support for the efitools, efivar and efibootmgr.
 
 %files -n %{libname}
-%{_libdir}/lib%{name}.so.%{major}*
-
-%package -n %{libefiboot}
-Summary:	Shared library for %{name}
-Group:		System/Libraries
-
-%description -n %{libefiboot}
-Shared library support for the efitools, efivar and efibootmgr.
-
-%files -n %{libefiboot}
-%{_libdir}/libefiboot.so.%{major}*
-
-#------------------------------------------------------------------
+%{_libdir}/libefi*.so.%{major}*
 
 %package -n %{devname}
 Summary:	The libefivar development files
 Group:		Development/Other
 Requires:	%{libname} = %{EVRD}
 Provides:	%{name}-devel = %{EVRD}
+%rename  %{_lib}efiboot-devel
 
 %description -n %{devname}
 Development files for libefivar.
 
 %files -n %{devname}
-%{_includedir}/efivar/efivar-dp.h
-%{_includedir}/efivar/efivar-guids.h
-%{_includedir}/efivar/efivar.h
-%{_libdir}/libefivar.so
-%{_libdir}/pkgconfig/efivar.pc
+%{_includedir}/efivar/*.h
+%{_libdir}/*.so
+%{_libdir}/pkgconfig/*.pc
 %doc %{_mandir}/man3/*
-
-%package -n %{devefiboot}
-Summary:	The libefiboot development files
-Group:		Development/Other
-Requires:	%{libefiboot} = %{EVRD}
-Provides:	libefiboot-devel = %{EVRD}
-Provides:	efiboot-devel = %{EVRD}
-
-%description -n %{devefiboot}
-Development files for libefiboot.
-
-%files -n %{devefiboot}
-%{_includedir}/efivar/efiboot-creator.h
-%{_includedir}/efivar/efiboot-loadopt.h
-%{_includedir}/efivar/efiboot.h
-%{_libdir}/libefiboot.so
-%{_libdir}/pkgconfig/efiboot.pc
 
 #------------------------------------------------------------------
 
 %prep
-%setup -q
-git init
-git config user.email "%{name}-owner@fedoraproject.org"
-git config user.name "Fedora Ninjas"
-git add .
-git commit -a -q -m "%{version} baseline."
-git am %{patches} </dev/null
-git config --unset user.email
-git config --unset user.name
+%autosetup -p1
 
-# (tpg) 2020-07-01 looks like LLD does not support --add-needed
-sed -i -e 's#-Wl,--add-needed##g' src/include/defaults.mk
 # fdrt dont use march=native on aarch64
 %ifarch aarch64 riscv64
 sed -i -e 's!-march=native!!g' src/include/defaults.mk
@@ -123,7 +89,7 @@ sed -i -e 's!-march=native!!g' src/include/defaults.mk
 
 %build
 %set_build_flags
-%make_build libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" COMPILER=%{__cc} CC=%{__cc} OPTIMIZE="%{optflags}" LDFLAGS="%{build_ldflags}" gcc_ccldflags="%{build_ldflags}" V=1 -j1
+%make_build CC="%{__cc}" COMPILER="%{__cc}" OPTIMIZE="%{optflags}" libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" V=1 -j1
 
 %install
 %make_install libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}"
