@@ -6,9 +6,6 @@
 %define libname %mklibname %{name} %{major}
 %define devname %mklibname %{name} -d
 
-%define libefiboot %mklibname efiboot %{major}
-%define devefiboot %mklibname efiboot -d
-
 %define minor %(echo %{version} |cut -d. -f2)
 
 %global optflags %{optflags} -Oz
@@ -16,7 +13,7 @@
 
 Name:		efivar
 Version:	38
-Release:	1
+Release:	2
 Summary:	EFI variables management tool
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
@@ -53,7 +50,8 @@ efivar is a command line interface to the EFI variables in '/sys/firmware/efi'.
 %package -n %{libname}
 Summary:	Shared library for %{name}
 Group:		System/Libraries
-%rename %{_lib}efiboot
+Conflicts:	%{_lib}efiboot1 < 38-2
+%rename %{_lib}efiboot1
 
 %description -n %{libname}
 Shared library support for the efitools, efivar and efibootmgr.
@@ -66,6 +64,7 @@ Summary:	The libefivar development files
 Group:		Development/Other
 Requires:	%{libname} = %{EVRD}
 Provides:	%{name}-devel = %{EVRD}
+Conflicts:	%{_lib}efiboot-devel < 38-2
 %rename  %{_lib}efiboot-devel
 
 %description -n %{devname}
