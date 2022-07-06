@@ -1,19 +1,17 @@
-# (tpg) 2022-06-29 ld.lld: error: undefined symbol: efi_error_set
-%define _disable_ld_no_undefined 1
-
 %define major 1
 
-%define libname %mklibname %{name} %{major}
+%define oldlibname %mklibname %{name} 1
+%define libname %mklibname %{name}
 %define devname %mklibname %{name} -d
 
 %define minor %(echo %{version} |cut -d. -f2)
 
-%global optflags %{optflags} -Oz
-
+# FIXME With lld: ld.lld: error: unable to insert .data after .data
+%global optflags %{optflags} -fuse-ld=bfd
 
 Name:		efivar
 Version:	38
-Release:	2
+Release:	3
 Summary:	EFI variables management tool
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
@@ -29,8 +27,10 @@ Patch6:		0006-Fix-invalid-free-in-main.patch
 Patch7:		0007-Remove-deprecated-add-needed-linker-flag.patch
 Patch8:		0008-src-Makefile-build-util.c-separately-for-makeguids.patch
 Patch9:		0009-Adjust-dependency-for-libefivar-and-libefiboot-objec.patch
+Patch10:	0010-Set-LC_ALL-C-to-force-English-output-from-ld.patch
 Patch100:	efivar-38-fix-lld-support.patch
 Patch101:	http://svnweb.mageia.org/packages/cauldron/efivar/current/SOURCES/0001-Mageia-does-not-have-mandoc.patch
+Patch102:	efivar-38-fix-underlinking.patch
 BuildRequires:	efi-srpm-macros
 BuildRequires:	pkgconfig(popt)
 BuildRequires:	kernel-devel
@@ -52,6 +52,7 @@ Summary:	Shared library for %{name}
 Group:		System/Libraries
 Conflicts:	%{_lib}efiboot1 < 38-2
 %rename %{_lib}efiboot1
+%rename %{oldlibname}
 
 %description -n %{libname}
 Shared library support for the efitools, efivar and efibootmgr.
@@ -80,11 +81,7 @@ Development files for libefivar.
 
 %prep
 %autosetup -p1
-
-# fdrt dont use march=native on aarch64
-%ifarch aarch64 riscv64
 sed -i -e 's!-march=native!!g' src/include/defaults.mk
-%endif
 
 %build
 %set_build_flags

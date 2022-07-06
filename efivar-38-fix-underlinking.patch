@@ -1,0 +1,11 @@
+diff -up efivar-38/src/Makefile.omv~ efivar-38/src/Makefile
+--- efivar-38/src/Makefile.omv~	2022-07-06 19:44:08.734723115 +0200
++++ efivar-38/src/Makefile	2022-07-06 19:44:45.489932768 +0200
+@@ -118,6 +118,7 @@ libefisec.a : $(patsubst %.o,%.static.o,
+ libefisec.so : $(LIBEFISEC_OBJECTS)
+ libefisec.so : | libefisec.map
+ libefisec.so : MAP=libefisec.map
++libefisec.so : LIBS=efivar
+ 
+ efisecdb : $(EFISECDB_OBJECTS) | libefisec.so
+ efisecdb : LIBS=efivar efisec dl

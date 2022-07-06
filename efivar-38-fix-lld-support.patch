@@ -1,19 +1,23 @@
-diff -Naur efivar-38/src/include/workarounds.mk efivar-38.tpg/src/include/workarounds.mk
---- efivar-38/src/include/workarounds.mk	2022-06-29 19:24:54.746097409 +0000
-+++ efivar-38.tpg/src/include/workarounds.mk	2022-06-29 19:26:33.775620212 +0000
-@@ -2,12 +2,12 @@
+diff -up efivar-38/src/include/workarounds.mk.omv~ efivar-38/src/include/workarounds.mk
+--- efivar-38/src/include/workarounds.mk.omv~	2022-07-06 20:14:20.796856247 +0200
++++ efivar-38/src/include/workarounds.mk	2022-07-06 20:15:39.554285531 +0200
+@@ -2,8 +2,8 @@
  #
  # workarounds.mk - workarounds for weird stuff behavior
  
--LD_FLAVOR := $(shell $(LD) --version | grep -E '^(LLD|GNU ld)'|sed 's/ .*//g')
--LD_VERSION := $(shell $(LD) --version | grep -E '^(LLD|GNU ld)'|sed 's/.* //')
-+LD_FLAVOR := $(shell $(LD) --version | grep -o -E '(LLD|GNU ld)'|sed 's/ .*//g')
-+LD_VERSION := $(shell $(LD) --version | grep -E '(LLD|GNU ld)'|sed 's/.* //')
+-LD_FLAVOR := $(shell LC_ALL=C $(LD) --version | grep -E '^(LLD|GNU ld)'|sed 's/ .*//g')
+-LD_VERSION := $(shell LC_ALL=C $(LD) --version | grep -E '^(LLD|GNU ld)'|sed 's/.* //')
++LD_FLAVOR := $(shell LC_ALL=C $(LD) --version | grep -E '^((.* )?LLD|GNU ld)'|sed 's/.* LLD/LLD/;s/ .*//g')
++LD_VERSION := $(shell LC_ALL=C $(LD) --version | grep -E '^((.* )?LLD|GNU ld)'|sed 's/.* LLD/LLD/;s/.* //')
  # 2.35 is definitely broken and 2.36 seems to work
  LD_DASH_T := $(shell \
  	if [ "x${LD_FLAVOR}" = xLLD ] ; then \
--		echo '-T' ; \
-+		echo "" ; \
- 	elif [ "x${LD_FLAVOR}" = xGNU ] ; then \
- 		if echo "${LD_VERSION}" | grep -q -E '^2\.3[6789]|^2\.[456789]|^[3456789]|^[[:digit:]][[:digit:]]' ; then \
- 			echo '-T' ; \
+@@ -15,7 +15,7 @@ LD_DASH_T := $(shell \
+ 			echo "" ; \
+ 		fi ; \
+ 	else \
+-		echo "Your linker is not supported" ; \
++		echo "Your linker ${LD_FLAVOR} version ${LD_VERSION} is not supported" ; \
+ 		exit 1 ; \
+ 	fi)
+ 
