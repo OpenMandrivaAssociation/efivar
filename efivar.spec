@@ -11,7 +11,7 @@
 
 Name:		efivar
 Version:	38
-Release:	3
+Release:	4
 Summary:	EFI variables management tool
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
@@ -28,7 +28,8 @@ Patch7:		0007-Remove-deprecated-add-needed-linker-flag.patch
 Patch8:		0008-src-Makefile-build-util.c-separately-for-makeguids.patch
 Patch9:		0009-Adjust-dependency-for-libefivar-and-libefiboot-objec.patch
 Patch10:	0010-Set-LC_ALL-C-to-force-English-output-from-ld.patch
-Patch100:	efivar-38-fix-lld-support.patch
+Patch11:	https://github.com/rhboot/efivar/commit/1f247260c9b4bd6fcda30f3e4cc358852aeb9e4d.patch
+Patch12:	https://github.com/rhboot/efivar/commit/bc65d63ebf8fe6ac8a099ff15ca200986dba1565.patch
 Patch101:	http://svnweb.mageia.org/packages/cauldron/efivar/current/SOURCES/0001-Mageia-does-not-have-mandoc.patch
 Patch102:	efivar-38-fix-underlinking.patch
 BuildRequires:	efi-srpm-macros
