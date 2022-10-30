@@ -6,13 +6,12 @@
 
 %define minor %(echo %{version} |cut -d. -f2)
 
-# FIXME With lld: ld.lld: error: unable to insert .data after .data
-%global optflags %{optflags} -fuse-ld=bfd
+%global optflags %{optflags} -Oz
 
+Summary:	EFI variables management tool
 Name:		efivar
 Version:	38
-Release:	4
-Summary:	EFI variables management tool
+Release:	5
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
 Url:		https://github.com/rhboot/efivar
@@ -29,7 +28,8 @@ Patch8:		0008-src-Makefile-build-util.c-separately-for-makeguids.patch
 Patch9:		0009-Adjust-dependency-for-libefivar-and-libefiboot-objec.patch
 Patch10:	0010-Set-LC_ALL-C-to-force-English-output-from-ld.patch
 Patch11:	https://github.com/rhboot/efivar/commit/1f247260c9b4bd6fcda30f3e4cc358852aeb9e4d.patch
-Patch12:	https://github.com/rhboot/efivar/commit/bc65d63ebf8fe6ac8a099ff15ca200986dba1565.patch
+Patch12:	https://patch-diff.githubusercontent.com/raw/rhboot/efivar/pull/235.patch
+Patch13:	https://github.com/rhboot/efivar/commit/bc65d63ebf8fe6ac8a099ff15ca200986dba1565.patch
 Patch101:	http://svnweb.mageia.org/packages/cauldron/efivar/current/SOURCES/0001-Mageia-does-not-have-mandoc.patch
 Patch102:	efivar-38-fix-underlinking.patch
 BuildRequires:	efi-srpm-macros
