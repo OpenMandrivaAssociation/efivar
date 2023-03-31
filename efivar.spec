@@ -11,7 +11,7 @@
 Summary:	EFI variables management tool
 Name:		efivar
 Version:	38
-Release:	5
+Release:	6
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
 Url:		https://github.com/rhboot/efivar
