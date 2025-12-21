@@ -32,6 +32,7 @@ Patch12:	https://patch-diff.githubusercontent.com/raw/rhboot/efivar/pull/235.pat
 Patch13:	https://github.com/rhboot/efivar/commit/bc65d63ebf8fe6ac8a099ff15ca200986dba1565.patch
 Patch101:	http://svnweb.mageia.org/packages/cauldron/efivar/current/SOURCES/0001-Mageia-does-not-have-mandoc.patch
 Patch102:	efivar-38-fix-underlinking.patch
+BuildRequires:	make
 BuildRequires:	efi-srpm-macros
 BuildRequires:	pkgconfig(popt)
 BuildRequires:	kernel-devel
