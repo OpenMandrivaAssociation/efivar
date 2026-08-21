@@ -11,7 +11,7 @@
 Summary:	EFI variables management tool
 Name:		efivar
 Version:	38
-Release:	6
+Release:	7
 License:	LGPLv2.1
 Group:		System/Kernel and hardware
 Url:		https://github.com/rhboot/efivar
@@ -87,7 +87,12 @@ sed -i -e 's!-march=native!!g' src/include/defaults.mk
 
 %build
 %set_build_flags
+%if %{cross_compiling}
+# makeguids is executed during the build; HOSTCC defaults to COMPILER (target).
+%make_build HOSTCC=clang HOSTCCLD=clang HOST_CFLAGS="-O2" HOST_LDFLAGS="-O2" LDFLAGS_CLANG= CC="%{__cc}" COMPILER="%{__cc}" OPTIMIZE="%{optflags}" libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" V=1 -j1
+%else
 %make_build CC="%{__cc}" COMPILER="%{__cc}" OPTIMIZE="%{optflags}" libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}" V=1 -j1
+%endif
 
 %install
 %make_install libdir="%{_libdir}" bindir="%{_bindir}" mandir="%{_mandir}"
